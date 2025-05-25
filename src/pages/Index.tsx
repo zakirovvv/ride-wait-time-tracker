@@ -4,6 +4,7 @@ import { AttractionSelector } from '@/components/AttractionSelector';
 import { QueueBoard } from '@/components/QueueBoard';
 import { VisitorDashboard } from '@/components/VisitorDashboard';
 import { CashierInterface } from '@/components/CashierInterface';
+import { CashierDisplay } from '@/components/CashierDisplay';
 import { OperatorInterface } from '@/components/OperatorInterface';
 import { InstructorInterface } from '@/components/InstructorInterface';
 import { StaffLogin } from '@/components/StaffLogin';
@@ -11,7 +12,7 @@ import { useStaffStore } from '@/stores/staffStore';
 import { Button } from '@/components/ui/button';
 
 const Index = () => {
-  const [activeView, setActiveView] = useState<'home' | 'queue' | 'visitor' | 'cashier' | 'operator' | 'instructor' | 'staff-login'>('home');
+  const [activeView, setActiveView] = useState<'home' | 'queue' | 'visitor' | 'cashier' | 'cashier-display' | 'operator' | 'instructor' | 'staff-login'>('home');
   const [selectedAttraction, setSelectedAttraction] = useState<string | null>(null);
   const { isAuthenticated, currentUser } = useStaffStore();
 
@@ -56,6 +57,8 @@ const Index = () => {
           <div className="min-h-screen flex items-center justify-center">
             <p className="text-red-600">Доступ запрещен</p>
           </div>;
+      case 'cashier-display':
+        return <CashierDisplay />;
       case 'instructor':
         return isAuthenticated && currentUser?.role === 'instructor' ? 
           <InstructorInterface /> : 
@@ -90,6 +93,25 @@ const Index = () => {
         >
           ← Главная
         </button>
+      )}
+      
+      {/* Кнопки в интерфейсе кассира */}
+      {activeView === 'cashier' && (
+        <Button
+          onClick={() => setActiveView('cashier-display')}
+          className="fixed top-4 right-4 z-50 bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+        >
+          📊 Табло кассы
+        </Button>
+      )}
+      
+      {activeView === 'cashier-display' && (
+        <Button
+          onClick={() => setActiveView('cashier')}
+          className="fixed top-4 right-4 z-50 bg-green-600 hover:bg-green-700 text-white shadow-lg"
+        >
+          🎫 Продажа билетов
+        </Button>
       )}
       
       {/* Кнопка входа для персонала */}
