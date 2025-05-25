@@ -1,12 +1,30 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState } from 'react';
+import { VisitorDashboard } from '@/components/VisitorDashboard';
+import { CashierInterface } from '@/components/CashierInterface';
+import { OperatorInterface } from '@/components/OperatorInterface';
+import { Navigation } from '@/components/Navigation';
 
 const Index = () => {
+  const [activeView, setActiveView] = useState<'visitor' | 'cashier' | 'operator'>('visitor');
+
+  const renderActiveView = () => {
+    switch (activeView) {
+      case 'visitor':
+        return <VisitorDashboard />;
+      case 'cashier':
+        return <CashierInterface />;
+      case 'operator':
+        return <OperatorInterface />;
+      default:
+        return <VisitorDashboard />;
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="relative">
+      <Navigation activeView={activeView} onViewChange={setActiveView} />
+      {renderActiveView()}
     </div>
   );
 };
