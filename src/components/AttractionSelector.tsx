@@ -11,16 +11,16 @@ interface AttractionSelectorProps {
 
 // Массив изображений для аттракционов в том же порядке, что вы указали
 const attractionImages = [
-  '/images/attraction-1.jpg', // Прыжки с веревкой
-  '/images/attraction-2.jpg', // Парные качели
-  '/images/attraction-3.jpg', // Веревочный парк
-  '/images/attraction-4.jpg', // Качели
-  '/images/attraction-5.jpg', // Скалодром
-  '/images/attraction-6.jpg', // Мини-троллей
-  '/images/attraction-7.jpg', // Троллей
-  '/images/attraction-8.jpg', // Спуск в грот
-  '/images/attraction-9.jpg', // Большой мост
-  '/images/attraction-10.jpg', // Малый мост
+  'https://images.unsplash.com/photo-1472396961693-142e6e269027?w=400&h=300&fit=crop', // Прыжки с веревкой
+  'https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=400&h=300&fit=crop', // Парные качели
+  'https://images.unsplash.com/photo-1500673922987-e212871fec22?w=400&h=300&fit=crop', // Веревочный парк
+  'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&h=300&fit=crop', // Качели
+  'https://images.unsplash.com/photo-1472396961693-142e6e269027?w=400&h=300&fit=crop', // Скалодром
+  'https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=400&h=300&fit=crop', // Мини-троллей
+  'https://images.unsplash.com/photo-1500673922987-e212871fec22?w=400&h=300&fit=crop', // Троллей
+  'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&h=300&fit=crop', // Спуск в грот
+  'https://images.unsplash.com/photo-1472396961693-142e6e269027?w=400&h=300&fit=crop', // Большой мост
+  'https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=400&h=300&fit=crop', // Малый мост
   null, // Вертолет - пока нет картинки
 ];
 
@@ -55,7 +55,15 @@ export const AttractionSelector = ({ onAttractionSelect, onRoleSelect }: Attract
                           src={imageUrl} 
                           alt={attraction.name}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            console.log(`Failed to load image for ${attraction.name}`);
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling!.style.display = 'block';
+                          }}
                         />
+                        <div className="w-full h-full flex items-center justify-center text-4xl bg-gray-100" style={{display: 'none'}}>
+                          {attraction.icon}
+                        </div>
                       </div>
                     ) : (
                       <div className="text-4xl mb-2">{attraction.icon}</div>
