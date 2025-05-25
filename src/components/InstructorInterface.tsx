@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,17 +13,40 @@ import { Users, CheckCircle, Clock, LogOut, AlertCircle } from 'lucide-react';
 export const InstructorInterface = () => {
   const [braceletCodeToComplete, setBraceletCodeToComplete] = useState('');
   const { currentUser, logout } = useStaffStore();
-  const removeFromQueue = useQueueStore(state => state.removeFromQueue);
-  const getAttractionQueue = useQueueStore(state => state.getAttractionQueue);
+  const { removeFromQueue, getAttractionQueue } = useQueueStore();
 
   const attractionId = currentUser?.attractionId;
   const attraction = attractions.find(a => a.id === attractionId);
-  const queue = attractionId ? getAttractionQueue(attractionId) : [];
+  
+  // Получаем очередь и обновляем её автоматически
+  const [queue, setQueue] = useState(() => attractionId ? getAttractionQueue(attractionId) : []);
+
+  // Обновляем очередь при изменениях
+  useEffect(() => {
+    if (attractionId) {
+      const updateQueue = () => {
+        const currentQueue = getAttractionQueue(attractionId);
+        setQueue(currentQueue);
+      };
+      
+      updateQueue();
+      
+      // Обновляем каждые 500ms для синхронизации
+      const interval = setInterval(updateQueue, 500);
+      return () => clearInterval(interval);
+    }
+  }, [attractionId, getAttractionQueue]);
 
   const handleCompleteRide = (braceletCode: string, customerName: string) => {
     console.log('Instructor completing ride for:', braceletCode, customerName);
     
     removeFromQueue(braceletCode);
+    
+    // Немедленно обновляем локальное состояние
+    if (attractionId) {
+      const updatedQueue = getAttractionQueue(attractionId);
+      setQueue(updatedQueue);
+    }
     
     toast({
       title: "Катание завершено!",
