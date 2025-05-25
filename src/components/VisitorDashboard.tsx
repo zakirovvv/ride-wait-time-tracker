@@ -2,6 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useQueueStore } from '@/stores/queueStore';
+import { useAttractionSettingsStore } from '@/stores/attractionSettingsStore';
 import { attractions } from '@/data/attractions';
 import { Clock, Users } from 'lucide-react';
 
@@ -11,6 +12,7 @@ interface VisitorDashboardProps {
 
 export const VisitorDashboard = ({ selectedAttraction }: VisitorDashboardProps) => {
   const queueSummary = useQueueStore(state => state.queueSummary);
+  const { getDuration } = useAttractionSettingsStore();
 
   const getWaitTimeColor = (waitTime: number) => {
     if (waitTime <= 15) return 'bg-green-500';
@@ -55,6 +57,9 @@ export const VisitorDashboard = ({ selectedAttraction }: VisitorDashboardProps) 
             const attraction = attractions.find(a => a.id === summary.attractionId);
             if (!attraction) return null;
 
+            // Получаем актуальную длительность из настроек
+            const currentDuration = getDuration(attraction.id);
+
             return (
               <Card key={summary.attractionId} className="bg-white/95 backdrop-blur-sm hover:bg-white transition-all duration-300 hover:scale-105 hover:shadow-xl border-0">
                 <CardHeader className="pb-3">
@@ -93,6 +98,16 @@ export const VisitorDashboard = ({ selectedAttraction }: VisitorDashboardProps) 
                       </div>
                       <span className="font-semibold text-purple-600">
                         {summary.estimatedWaitTime === 0 ? 'Сейчас' : `${summary.estimatedWaitTime} мин`}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center text-gray-700">
+                        <Clock className="w-4 h-4 mr-2" />
+                        <span className="text-sm">Длительность:</span>
+                      </div>
+                      <span className="font-semibold text-purple-600">
+                        {currentDuration} мин
                       </span>
                     </div>
 

@@ -2,11 +2,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useQueueStore } from '@/stores/queueStore';
+import { useAttractionSettingsStore } from '@/stores/attractionSettingsStore';
 import { attractions } from '@/data/attractions';
 import { Clock, Users, Timer } from 'lucide-react';
 
 export const PublicQueueDisplay = () => {
   const queueSummary = useQueueStore(state => state.queueSummary);
+  const { getDuration } = useAttractionSettingsStore();
 
   const getStatusColor = (waitTime: number) => {
     if (waitTime === 0) return 'text-green-600 bg-green-50';
@@ -95,6 +97,8 @@ export const PublicQueueDisplay = () => {
                     const attraction = attractions.find(a => a.id === summary.attractionId);
                     if (!attraction) return null;
 
+                    // Получаем актуальную длительность из настроек
+                    const currentDuration = getDuration(attraction.id);
                     const nextAvailableTime = new Date(Date.now() + (summary.estimatedWaitTime * 60000));
 
                     return (
@@ -123,7 +127,7 @@ export const PublicQueueDisplay = () => {
                         
                         <TableCell className="text-center">
                           <span className="font-semibold text-gray-600">
-                            {attraction.duration} мин
+                            {currentDuration} мин
                           </span>
                         </TableCell>
                         
