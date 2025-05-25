@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { AttractionSelector } from '@/components/AttractionSelector';
 import { QueueBoard } from '@/components/QueueBoard';
@@ -14,7 +15,7 @@ import { Button } from '@/components/ui/button';
 const Index = () => {
   const [activeView, setActiveView] = useState<'home' | 'queue' | 'visitor' | 'cashier' | 'cashier-display' | 'public-display' | 'operator' | 'instructor' | 'staff-login'>('home');
   const [selectedAttraction, setSelectedAttraction] = useState<string | null>(null);
-  const { isAuthenticated, currentUser } = useStaffStore();
+  const { isAuthenticated, currentUser, logout } = useStaffStore();
 
   const handleStaffLogin = () => {
     setActiveView('staff-login');
@@ -29,6 +30,11 @@ const Index = () => {
     } else if (currentUser?.role === 'admin') {
       setActiveView('cashier'); // Админ может работать как кассир
     }
+  };
+
+  const handleHomeClick = () => {
+    logout(); // Выходим из системы при переходе на главную
+    setActiveView('home');
   };
 
   const renderActiveView = () => {
@@ -58,10 +64,6 @@ const Index = () => {
           <CashierInterface /> : 
           <div className="min-h-screen flex items-center justify-center flex-col">
             <p className="text-red-600">Доступ запрещен. Требуется роль кассира или администратора.</p>
-            <p className="text-sm text-gray-600 mt-2">
-              Текущая роль: {currentUser?.role || 'не определена'}, 
-              Аутентифицирован: {isAuthenticated ? 'да' : 'нет'}
-            </p>
           </div>;
       case 'cashier-display':
         return <CashierDisplay />;
@@ -70,20 +72,12 @@ const Index = () => {
           <InstructorInterface /> : 
           <div className="min-h-screen flex items-center justify-center flex-col">
             <p className="text-red-600">Доступ запрещен. Требуется роль инструктора.</p>
-            <p className="text-sm text-gray-600 mt-2">
-              Текущая роль: {currentUser?.role || 'не определена'}, 
-              Аутентифицирован: {isAuthenticated ? 'да' : 'нет'}
-            </p>
           </div>;
       case 'operator':
         return isAuthenticated && currentUser?.role === 'admin' ? 
           <OperatorInterface /> : 
           <div className="min-h-screen flex items-center justify-center flex-col">
             <p className="text-red-600">Доступ запрещен. Требуется роль администратора.</p>
-            <p className="text-sm text-gray-600 mt-2">
-              Текущая роль: {currentUser?.role || 'не определена'}, 
-              Аутентифицирован: {isAuthenticated ? 'да' : 'нет'}
-            </p>
           </div>;
       default:
         return (
@@ -102,7 +96,7 @@ const Index = () => {
     <div className="relative">
       {activeView !== 'home' && activeView !== 'staff-login' && (
         <button
-          onClick={() => setActiveView('home')}
+          onClick={handleHomeClick}
           className="fixed top-4 left-4 z-50 bg-white/90 hover:bg-white px-4 py-2 rounded-lg shadow-lg transition-all"
         >
           ← Главная
