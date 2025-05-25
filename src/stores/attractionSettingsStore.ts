@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { AttractionSetting } from '@/types';
 import { attractions } from '@/data/attractions';
@@ -40,13 +41,7 @@ export const useAttractionSettingsStore = create<AttractionSettingsState>((set, 
     try {
       const { settings } = get();
       localStorage.setItem('park-settings', JSON.stringify(settings));
-      
-      // Уведомляем другие устройства через WebRTC
-      window.dispatchEvent(new CustomEvent('broadcast-settings-update', { 
-        detail: { settings, timestamp: Date.now() } 
-      }));
-      
-      console.log('Saved settings to storage and triggered WebRTC broadcast');
+      console.log('Saved settings to localStorage - will sync automatically across devices');
     } catch (error) {
       console.error('Error saving settings to storage:', error);
     }
@@ -61,7 +56,6 @@ export const useAttractionSettingsStore = create<AttractionSettingsState>((set, 
       )
     }));
     
-    // Сохраняем и синхронизируем
     get().saveToStorage();
   },
 
@@ -79,23 +73,15 @@ export const useAttractionSettingsStore = create<AttractionSettingsState>((set, 
 
 // Инициализация при загрузке приложения
 if (typeof window !== 'undefined') {
-  // Загружаем данные при старте
   useAttractionSettingsStore.getState().loadFromStorage();
   
-  // Слушаем события синхронизации от других устройств через WebRTC
+  // Слушаем события синхронизации от других устройств
   window.addEventListener('settings-sync', (event: CustomEvent) => {
-    console.log('Received settings sync event from WebRTC');
+    console.log('Received settings sync from another device');
     const settingsData = event.detail;
     if (settingsData && Array.isArray(settingsData)) {
-      // Обновляем localStorage с данными от другого устройства
       localStorage.setItem('park-settings', JSON.stringify(settingsData));
-      // Перезагружаем данные
       useAttractionSettingsStore.getState().loadFromStorage();
     }
-  });
-
-  // Слушаем события для отправки обновлений через WebRTC
-  window.addEventListener('broadcast-settings-update', (event: CustomEvent) => {
-    // Это событие будет перехвачено useBroadcastSync для отправки через WebRTC
   });
 }

@@ -62,13 +62,7 @@ export const useQueueStore = create<QueueState>((set, get) => ({
     try {
       const { queue } = get();
       localStorage.setItem('park-queue', JSON.stringify(queue));
-      
-      // Уведомляем другие устройства через WebRTC
-      window.dispatchEvent(new CustomEvent('broadcast-queue-update', { 
-        detail: { queue, timestamp: Date.now() } 
-      }));
-      
-      console.log('Saved queue to storage and triggered WebRTC broadcast');
+      console.log('Saved queue to localStorage - will sync automatically across devices');
     } catch (error) {
       console.error('Error saving queue to storage:', error);
     }
@@ -106,9 +100,7 @@ export const useQueueStore = create<QueueState>((set, get) => ({
     const newSummary = calculateQueueSummary(newQueue);
     set({ queue: newQueue, queueSummary: newSummary });
     
-    // Сохраняем и синхронизируем
     get().saveToStorage();
-    
     console.log('Added to queue:', newEntry);
   },
 
@@ -151,9 +143,7 @@ export const useQueueStore = create<QueueState>((set, get) => ({
     const newSummary = calculateQueueSummary(updatedQueue);
     set({ queue: updatedQueue, queueSummary: newSummary });
     
-    // Сохраняем и синхронизируем
     get().saveToStorage();
-    
     console.log('Successfully removed entry for bracelet code:', braceletCode);
   },
 
@@ -167,30 +157,21 @@ export const useQueueStore = create<QueueState>((set, get) => ({
   }
 }));
 
-// Функция для автоматического обновления очередей при изменении настроек
 export const updateQueuesWhenSettingsChange = () => {
   useQueueStore.getState().updateQueueSummary();
 };
 
 // Инициализация при загрузке приложения
 if (typeof window !== 'undefined') {
-  // Загружаем данные при старте
   useQueueStore.getState().loadFromStorage();
   
-  // Слушаем события синхронизации от других устройств через WebRTC
+  // Слушаем события синхронизации от других устройств
   window.addEventListener('queue-sync', (event: CustomEvent) => {
-    console.log('Received queue sync event from WebRTC');
+    console.log('Received queue sync from another device');
     const queueData = event.detail;
     if (queueData && Array.isArray(queueData)) {
-      // Обновляем localStorage с данными от другого устройства
       localStorage.setItem('park-queue', JSON.stringify(queueData));
-      // Перезагружаем данные
       useQueueStore.getState().loadFromStorage();
     }
-  });
-
-  // Слушаем события для отправки обновлений через WebRTC
-  window.addEventListener('broadcast-queue-update', (event: CustomEvent) => {
-    // Это событие будет перехвачено useBroadcastSync для отправки через WebRTC
   });
 }

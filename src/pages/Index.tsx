@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { AttractionSelector } from '@/components/AttractionSelector';
 import { QueueBoard } from '@/components/QueueBoard';
@@ -11,7 +12,6 @@ import { StaffLogin } from '@/components/StaffLogin';
 import { useStaffStore } from '@/stores/staffStore';
 import { useBroadcastSync } from '@/hooks/useBroadcastSync';
 import { Button } from '@/components/ui/button';
-import { NetworkManager } from '@/components/NetworkManager';
 
 const Index = () => {
   const [activeView, setActiveView] = useState<'home' | 'queue' | 'visitor' | 'cashier' | 'cashier-display' | 'public-display' | 'operator' | 'instructor' | 'staff-login'>('home');
@@ -53,20 +53,13 @@ const Index = () => {
     switch (activeView) {
       case 'home':
         return (
-          <div className="space-y-6">
-            <AttractionSelector 
-              onAttractionSelect={(attractionId) => {
-                setSelectedAttraction(attractionId);
-                setActiveView('queue');
-              }}
-              onRoleSelect={(role) => setActiveView(role)}
-            />
-            
-            {/* Добавляем NetworkManager на главную страницу */}
-            <div className="max-w-md mx-auto">
-              <NetworkManager />
-            </div>
-          </div>
+          <AttractionSelector 
+            onAttractionSelect={(attractionId) => {
+              setSelectedAttraction(attractionId);
+              setActiveView('queue');
+            }}
+            onRoleSelect={(role) => setActiveView(role)}
+          />
         );
       case 'queue':
         return selectedAttraction ? <QueueBoard attractionId={selectedAttraction} /> : null;
@@ -144,9 +137,9 @@ const Index = () => {
             Вход для персонала
           </Button>
           
-          {/* Индикатор статуса синхронизации */}
+          {/* Простой индикатор */}
           <div className="fixed bottom-4 left-4 z-50 bg-green-600 text-white px-3 py-1 rounded-full text-sm">
-            🟢 Синхронизация активна
+            🌐 Локальная сеть
           </div>
         </>
       )}
