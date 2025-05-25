@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AttractionSelector } from '@/components/AttractionSelector';
 import { QueueBoard } from '@/components/QueueBoard';
@@ -23,8 +22,10 @@ const Index = () => {
 
   const handleLoginSuccess = () => {
     // Перенаправляем пользователя в зависимости от его роли
-    if (currentUser?.role === 'cashier' || currentUser?.role === 'admin') {
+    if (currentUser?.role === 'cashier') {
       setActiveView('cashier');
+    } else if (currentUser?.role === 'admin') {
+      setActiveView('cashier'); // Админ может работать как кассир
     } else if (currentUser?.role === 'instructor') {
       setActiveView('instructor');
     }
