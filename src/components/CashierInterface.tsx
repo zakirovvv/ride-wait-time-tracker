@@ -7,16 +7,20 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQueueStore } from '@/stores/queueStore';
 import { useStaffStore } from '@/stores/staffStore';
+import { useAttractionSettingsStore } from '@/stores/attractionSettingsStore';
 import { attractions } from '@/data/attractions';
 import { toast } from '@/hooks/use-toast';
-import { Ticket, Hash, Clock, LogOut, Timer } from 'lucide-react';
+import { Ticket, Hash, Clock, LogOut, Timer, Settings } from 'lucide-react';
+import { AttractionSettings } from './AttractionSettings';
 
 export const CashierInterface = () => {
   const [braceletCode, setBraceletCode] = useState('');
   const [selectedAttraction, setSelectedAttraction] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
   const addToQueue = useQueueStore(state => state.addToQueue);
   const queueSummary = useQueueStore(state => state.queueSummary);
   const { currentUser, logout } = useStaffStore();
+  const { getDuration } = useAttractionSettingsStore();
 
   const handleSellTicket = () => {
     if (!braceletCode.trim() || !selectedAttraction) {
@@ -51,6 +55,28 @@ export const CashierInterface = () => {
     });
   };
 
+  if (showSettings) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-green-500 to-teal-400 p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-4xl font-bold text-white drop-shadow-lg">
+              ⚙️ Настройки аттракционов
+            </h1>
+            <Button
+              onClick={() => setShowSettings(false)}
+              variant="outline"
+              className="bg-white/20 text-white border-white/30 hover:bg-white/30"
+            >
+              Назад к продаже билетов
+            </Button>
+          </div>
+          <AttractionSettings />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-green-500 to-teal-400 p-6">
       <div className="max-w-6xl mx-auto">
@@ -64,10 +90,18 @@ export const CashierInterface = () => {
               Введите код браслета и выберите аттракцион
             </p>
           </div>
-          <div className="text-right">
+          <div className="text-right flex flex-col space-y-2">
             <div className="text-white mb-2">
               <span className="font-semibold">{currentUser?.name}</span>
             </div>
+            <Button
+              onClick={() => setShowSettings(true)}
+              variant="outline"
+              className="bg-white/20 text-white border-white/30 hover:bg-white/30"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Настройки
+            </Button>
             <Button 
               onClick={handleLogout}
               variant="outline"
@@ -117,13 +151,14 @@ export const CashierInterface = () => {
                   <SelectContent>
                     {attractions.filter(a => a.isActive).map((attraction) => {
                       const summary = queueSummary.find(s => s.attractionId === attraction.id);
+                      const currentDuration = getDuration(attraction.id);
                       return (
                         <SelectItem key={attraction.id} value={attraction.id}>
                           <div className="flex items-center">
                             <span className="mr-2">{attraction.icon}</span>
                             <span className="mr-2">{attraction.name}</span>
                             <span className="text-sm text-gray-500">
-                              ({summary?.queueLength || 0} в очереди, {attraction.duration} мин)
+                              ({summary?.queueLength || 0} в очереди, {currentDuration} мин)
                             </span>
                           </div>
                         </SelectItem>
@@ -157,6 +192,8 @@ export const CashierInterface = () => {
                   const attraction = attractions.find(a => a.id === summary.attractionId);
                   if (!attraction) return null;
 
+                  const currentDuration = getDuration(attraction.id);
+
                   return (
                     <div key={summary.attractionId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center">
@@ -165,7 +202,7 @@ export const CashierInterface = () => {
                           <div className="font-semibold text-gray-800">{attraction.name}</div>
                           <div className="flex items-center text-sm text-gray-500">
                             <Timer className="w-3 h-3 mr-1" />
-                            {attraction.duration} мин на человека
+                            {currentDuration} мин на человека
                           </div>
                         </div>
                       </div>

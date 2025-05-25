@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { QueueEntry, QueueSummary } from '@/types';
 import { attractions } from '@/data/attractions';
+import { useAttractionSettingsStore } from '@/stores/attractionSettingsStore';
 
 interface QueueState {
   queue: QueueEntry[];
@@ -16,8 +17,12 @@ const calculateQueueSummary = (queue: QueueEntry[]): QueueSummary[] => {
   return attractions.map(attraction => {
     const attractionQueue = queue.filter(q => q.attractionId === attraction.id);
     const queueLength = attractionQueue.length;
+    
+    // Получаем актуальное время из настроек
+    const currentDuration = useAttractionSettingsStore.getState().getDuration(attraction.id);
+    
     // Первый человек идет сразу, остальные ждут
-    const estimatedWaitTime = queueLength > 0 ? (queueLength - 1) * attraction.duration : 0;
+    const estimatedWaitTime = queueLength > 0 ? (queueLength - 1) * currentDuration : 0;
     const nextAvailableTime = new Date(Date.now() + (estimatedWaitTime * 60000));
 
     return {
@@ -47,10 +52,13 @@ export const useQueueStore = create<QueueState>((set, get) => ({
     
     if (!attraction) return;
 
+    // Получаем актуальное время из настроек
+    const currentDuration = useAttractionSettingsStore.getState().getDuration(attraction.id);
+
     const position = attractionQueue.length + 1;
     const timeAdded = new Date();
     // Первый человек (position = 1) идет сразу, остальные ждут
-    const waitTime = position === 1 ? 0 : (position - 1) * attraction.duration;
+    const waitTime = position === 1 ? 0 : (position - 1) * currentDuration;
     const estimatedTime = new Date(timeAdded.getTime() + (waitTime * 60000));
 
     const newEntry: QueueEntry = {
@@ -100,13 +108,16 @@ export const useQueueStore = create<QueueState>((set, get) => ({
       return;
     }
 
+    // Получаем актуальное время из настроек
+    const currentDuration = useAttractionSettingsStore.getState().getDuration(attraction.id);
+
     // Recalculate only for the affected attraction
     const updatedQueue = filteredQueue.map(entry => {
       if (entry.attractionId === affectedAttractionId) {
         const attractionEntries = filteredQueue.filter(q => q.attractionId === affectedAttractionId);
         const newPosition = attractionEntries.findIndex(q => q.id === entry.id) + 1;
         // Первый человек идет сразу, остальные ждут
-        const waitTime = newPosition === 1 ? 0 : (newPosition - 1) * attraction.duration;
+        const waitTime = newPosition === 1 ? 0 : (newPosition - 1) * currentDuration;
         const newEstimatedTime = new Date(Date.now() + (waitTime * 60000));
         
         console.log(`Updated position for ${entry.braceletCode}: ${entry.position} -> ${newPosition}`);
