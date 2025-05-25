@@ -190,42 +190,12 @@ export const OperatorInterface = () => {
             </CardContent>
           </Card>
 
-          {/* Быстрое удаление */}
-          <Card className="bg-white/95 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center text-xl text-gray-800">
-                <Trash2 className="w-5 h-5 mr-2 text-red-600" />
-                Завершить катание
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="braceletCode" className="text-gray-700">
-                  Код браслета
-                </Label>
-                <Input
-                  id="braceletCode"
-                  value={braceletCodeToRemove}
-                  onChange={(e) => setBraceletCodeToRemove(e.target.value.toUpperCase())}
-                  placeholder="Например: BR1A2B3C"
-                  className="mt-1"
-                />
-              </div>
-              <Button 
-                onClick={handleRemoveFromQueue}
-                className="w-full bg-red-600 hover:bg-red-700 text-white"
-              >
-                Убрать из очереди
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Быстрое завершение как инструктор */}
+          {/* Быстрое завершение катания */}
           <Card className="bg-white/95 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center text-xl text-gray-800">
                 <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
-                Быстрое завершение
+                Завершить катание
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -262,6 +232,36 @@ export const OperatorInterface = () => {
             </CardContent>
           </Card>
 
+          {/* Удаление из очереди (старая функция) */}
+          <Card className="bg-white/95 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center text-xl text-gray-800">
+                <Trash2 className="w-5 h-5 mr-2 text-red-600" />
+                Убрать из очереди
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="braceletCode" className="text-gray-700">
+                  Код браслета
+                </Label>
+                <Input
+                  id="braceletCode"
+                  value={braceletCodeToRemove}
+                  onChange={(e) => setBraceletCodeToRemove(e.target.value.toUpperCase())}
+                  placeholder="Например: BR1A2B3C"
+                  className="mt-1"
+                />
+              </div>
+              <Button 
+                onClick={handleRemoveFromQueue}
+                className="w-full bg-red-600 hover:bg-red-700 text-white"
+              >
+                Убрать из очереди
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Статистика */}
           <Card className="bg-white/95 backdrop-blur-sm">
             <CardHeader>
@@ -293,7 +293,7 @@ export const OperatorInterface = () => {
           </Card>
         </div>
 
-        {/* Информация о выбранном аттракционе */}
+        {/* Информация о выбранном аттракционе и статус очереди */}
         {selectedAttraction && currentAttraction && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
             <Card className="bg-white/95 backdrop-blur-sm">
