@@ -1,4 +1,3 @@
-
 export interface Attraction {
   id: string;
   name: string;
@@ -47,4 +46,12 @@ export interface PeerConnection {
   dataChannel?: RTCDataChannel;
   isConnected: boolean;
   isHost: boolean;
+}
+
+// Добавляем типы для глобальных функций синхронизации
+declare global {
+  interface Window {
+    broadcastQueueUpdate?: (data: any) => void;
+    broadcastSettingsUpdate?: (data: any) => void;
+  }
 }

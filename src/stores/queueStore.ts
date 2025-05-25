@@ -62,7 +62,13 @@ export const useQueueStore = create<QueueState>((set, get) => ({
     try {
       const { queue } = get();
       localStorage.setItem('park-queue', JSON.stringify(queue));
-      console.log('Saved queue to localStorage - will sync automatically across devices');
+      
+      // Отправляем обновления на сервер
+      if (window.broadcastQueueUpdate) {
+        window.broadcastQueueUpdate(queue);
+      }
+      
+      console.log('Saved queue to localStorage and sent to server');
     } catch (error) {
       console.error('Error saving queue to storage:', error);
     }

@@ -41,7 +41,13 @@ export const useAttractionSettingsStore = create<AttractionSettingsState>((set, 
     try {
       const { settings } = get();
       localStorage.setItem('park-settings', JSON.stringify(settings));
-      console.log('Saved settings to localStorage - will sync automatically across devices');
+      
+      // Отправляем обновления на сервер
+      if (window.broadcastSettingsUpdate) {
+        window.broadcastSettingsUpdate(settings);
+      }
+      
+      console.log('Saved settings to localStorage and sent to server');
     } catch (error) {
       console.error('Error saving settings to storage:', error);
     }

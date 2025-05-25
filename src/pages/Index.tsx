@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { AttractionSelector } from '@/components/AttractionSelector';
 import { QueueBoard } from '@/components/QueueBoard';
@@ -19,7 +18,23 @@ const Index = () => {
   const { isAuthenticated, currentUser, logout } = useStaffStore();
   
   // Инициализируем синхронизацию между устройствами
-  useBroadcastSync();
+  const { broadcastUpdate, isConnected } = useBroadcastSync();
+
+  useEffect(() => {
+    // Создаем глобальные функции для синхронизации
+    (window as any).broadcastQueueUpdate = (data: any) => {
+      broadcastUpdate('queue-update', data);
+    };
+    
+    (window as any).broadcastSettingsUpdate = (data: any) => {
+      broadcastUpdate('settings-update', data);
+    };
+
+    return () => {
+      delete (window as any).broadcastQueueUpdate;
+      delete (window as any).broadcastSettingsUpdate;
+    };
+  }, [broadcastUpdate]);
 
   const handleStaffLogin = () => {
     setActiveView('staff-login');
@@ -137,9 +152,14 @@ const Index = () => {
             Вход для персонала
           </Button>
           
-          {/* Простой индикатор */}
-          <div className="fixed bottom-4 left-4 z-50 bg-green-600 text-white px-3 py-1 rounded-full text-sm">
-            🌐 Локальная сеть
+          {/* Обновленный индикатор сети */}
+          <div className="fixed bottom-4 left-4 z-50 bg-green-600 text-white px-3 py-1 rounded-full text-sm flex items-center space-x-2">
+            <span className={isConnected ? "text-green-200" : "text-red-200"}>
+              {isConnected ? "🌐" : "📱"}
+            </span>
+            <span>
+              {isConnected ? "Сеть активна" : "Автономный режим"}
+            </span>
           </div>
         </>
       )}
