@@ -66,6 +66,10 @@ const Index = () => {
           <InstructorInterface /> : 
           <div className="min-h-screen flex items-center justify-center">
             <p className="text-red-600">Доступ запрещен. Требуется роль инструктора.</p>
+            <p className="text-sm text-gray-600 mt-2">
+              Текущая роль: {currentUser?.role || 'не определена'}, 
+              Аутентифицирован: {isAuthenticated ? 'да' : 'нет'}
+            </p>
           </div>;
       case 'operator':
         return isAuthenticated && currentUser?.role === 'admin' ? 
