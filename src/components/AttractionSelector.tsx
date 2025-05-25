@@ -73,9 +73,7 @@ export const AttractionSelector = ({
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <div className="text-xs text-gray-600 text-center">
-                    Длительность: {attraction.duration} мин
-                  </div>
+                  
                   
                 </CardContent>
               </Card>;
