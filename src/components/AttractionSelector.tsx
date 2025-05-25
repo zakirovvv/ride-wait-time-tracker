@@ -9,6 +9,21 @@ interface AttractionSelectorProps {
   onRoleSelect: (role: 'visitor' | 'cashier' | 'operator') => void;
 }
 
+// Массив изображений для аттракционов в том же порядке, что вы указали
+const attractionImages = [
+  '/images/attraction-1.jpg', // Прыжки с веревкой
+  '/images/attraction-2.jpg', // Парные качели
+  '/images/attraction-3.jpg', // Веревочный парк
+  '/images/attraction-4.jpg', // Качели
+  '/images/attraction-5.jpg', // Скалодром
+  '/images/attraction-6.jpg', // Мини-троллей
+  '/images/attraction-7.jpg', // Троллей
+  '/images/attraction-8.jpg', // Спуск в грот
+  '/images/attraction-9.jpg', // Большой мост
+  '/images/attraction-10.jpg', // Малый мост
+  null, // Вертолет - пока нет картинки
+];
+
 export const AttractionSelector = ({ onAttractionSelect, onRoleSelect }: AttractionSelectorProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-600 via-blue-500 to-purple-600 p-6">
@@ -24,30 +39,43 @@ export const AttractionSelector = ({ onAttractionSelect, onRoleSelect }: Attract
 
         {/* Сетка аттракционов */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
-          {attractions.map((attraction) => (
-            <Card 
-              key={attraction.id} 
-              className="bg-white/95 backdrop-blur-sm hover:bg-white transition-all duration-300 hover:scale-105 hover:shadow-xl border-0 cursor-pointer"
-              onClick={() => onAttractionSelect(attraction.id)}
-            >
-              <CardHeader className="pb-2">
-                <div className="text-center">
-                  <div className="text-4xl mb-2">{attraction.icon}</div>
-                  <CardTitle className="text-lg text-gray-800 leading-tight">
-                    {attraction.name}
-                  </CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="text-xs text-gray-600 text-center">
-                  Длительность: {attraction.duration} мин
-                </div>
-                <div className="text-xs text-gray-600 text-center">
-                  Вместимость: {attraction.capacity} чел
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {attractions.slice(0, 11).map((attraction, index) => {
+            const imageUrl = attractionImages[index];
+            return (
+              <Card 
+                key={attraction.id} 
+                className="bg-white/95 backdrop-blur-sm hover:bg-white transition-all duration-300 hover:scale-105 hover:shadow-xl border-0 cursor-pointer overflow-hidden"
+                onClick={() => onAttractionSelect(attraction.id)}
+              >
+                <CardHeader className="pb-2">
+                  <div className="text-center">
+                    {imageUrl ? (
+                      <div className="w-full h-32 mb-2 rounded-lg overflow-hidden">
+                        <img 
+                          src={imageUrl} 
+                          alt={attraction.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="text-4xl mb-2">{attraction.icon}</div>
+                    )}
+                    <CardTitle className="text-lg text-gray-800 leading-tight">
+                      {attraction.name}
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="text-xs text-gray-600 text-center">
+                    Длительность: {attraction.duration} мин
+                  </div>
+                  <div className="text-xs text-gray-600 text-center">
+                    Вместимость: {attraction.capacity} чел
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Панель администрирования */}
