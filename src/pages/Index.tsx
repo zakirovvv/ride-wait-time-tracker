@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AttractionSelector } from '@/components/AttractionSelector';
 import { QueueBoard } from '@/components/QueueBoard';
@@ -37,9 +36,13 @@ const Index = () => {
     setActiveView('home');
   };
 
+  const handleBackToHome = () => {
+    setActiveView('home');
+  };
+
   const renderActiveView = () => {
     if (activeView === 'staff-login') {
-      return <StaffLogin onLoginSuccess={handleLoginSuccess} />;
+      return <StaffLogin onLoginSuccess={handleLoginSuccess} onBack={handleBackToHome} />;
     }
 
     switch (activeView) {

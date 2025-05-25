@@ -6,13 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useStaffStore } from '@/stores/staffStore';
 import { toast } from '@/hooks/use-toast';
-import { Lock, User } from 'lucide-react';
+import { Lock, User, ArrowLeft } from 'lucide-react';
 
 interface StaffLoginProps {
   onLoginSuccess: () => void;
+  onBack?: () => void;
 }
 
-export const StaffLogin = ({ onLoginSuccess }: StaffLoginProps) => {
+export const StaffLogin = ({ onLoginSuccess, onBack }: StaffLoginProps) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const login = useStaffStore(state => state.login);
@@ -37,6 +38,17 @@ export const StaffLogin = ({ onLoginSuccess }: StaffLoginProps) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900 flex items-center justify-center p-6">
+      {onBack && (
+        <Button
+          onClick={onBack}
+          variant="outline"
+          className="fixed top-4 left-4 z-50 bg-white/90 hover:bg-white text-gray-800 shadow-lg"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Назад
+        </Button>
+      )}
+      
       <Card className="w-full max-w-md bg-white/95 backdrop-blur-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl text-gray-800 flex items-center justify-center">
