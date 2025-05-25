@@ -127,33 +127,8 @@ export const InstructorInterface = () => {
 
           {/* Статус очереди */}
           <Card className="bg-white/95 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center text-xl text-gray-800">
-                <Users className="w-5 h-5 mr-2 text-blue-600" />
-                Статус очереди
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {queue.length === 0 ? <div className="text-center py-4 text-gray-500">
-                  <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p>Очередь пуста</p>
-                </div> : <div className="space-y-2">
-                  <div className="text-sm text-gray-600">
-                    Следующий в очереди:
-                  </div>
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                    <div className="font-semibold text-blue-800">
-                      {queue[0]?.customerName}
-                    </div>
-                    <div className="text-sm text-blue-600">
-                      {queue[0]?.braceletCode}
-                    </div>
-                  </div>
-                  {queue.length > 1 && <div className="text-sm text-gray-500">
-                      +{queue.length - 1} в очереди
-                    </div>}
-                </div>}
-            </CardContent>
+            
+            
           </Card>
         </div>
 
