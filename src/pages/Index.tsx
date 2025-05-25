@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { AttractionSelector } from '@/components/AttractionSelector';
 import { QueueBoard } from '@/components/QueueBoard';
@@ -24,10 +25,10 @@ const Index = () => {
     // Перенаправляем пользователя в зависимости от его роли
     if (currentUser?.role === 'cashier') {
       setActiveView('cashier');
-    } else if (currentUser?.role === 'admin') {
-      setActiveView('cashier'); // Админ может работать как кассир
     } else if (currentUser?.role === 'instructor') {
       setActiveView('instructor');
+    } else if (currentUser?.role === 'admin') {
+      setActiveView('cashier'); // Админ может работать как кассир
     }
   };
 
@@ -56,15 +57,19 @@ const Index = () => {
       case 'cashier':
         return isAuthenticated && (currentUser?.role === 'cashier' || currentUser?.role === 'admin') ? 
           <CashierInterface /> : 
-          <div className="min-h-screen flex items-center justify-center">
+          <div className="min-h-screen flex items-center justify-center flex-col">
             <p className="text-red-600">Доступ запрещен. Требуется роль кассира или администратора.</p>
+            <p className="text-sm text-gray-600 mt-2">
+              Текущая роль: {currentUser?.role || 'не определена'}, 
+              Аутентифицирован: {isAuthenticated ? 'да' : 'нет'}
+            </p>
           </div>;
       case 'cashier-display':
         return <CashierDisplay />;
       case 'instructor':
         return isAuthenticated && currentUser?.role === 'instructor' ? 
           <InstructorInterface /> : 
-          <div className="min-h-screen flex items-center justify-center">
+          <div className="min-h-screen flex items-center justify-center flex-col">
             <p className="text-red-600">Доступ запрещен. Требуется роль инструктора.</p>
             <p className="text-sm text-gray-600 mt-2">
               Текущая роль: {currentUser?.role || 'не определена'}, 
@@ -74,8 +79,12 @@ const Index = () => {
       case 'operator':
         return isAuthenticated && currentUser?.role === 'admin' ? 
           <OperatorInterface /> : 
-          <div className="min-h-screen flex items-center justify-center">
+          <div className="min-h-screen flex items-center justify-center flex-col">
             <p className="text-red-600">Доступ запрещен. Требуется роль администратора.</p>
+            <p className="text-sm text-gray-600 mt-2">
+              Текущая роль: {currentUser?.role || 'не определена'}, 
+              Аутентифицирован: {isAuthenticated ? 'да' : 'нет'}
+            </p>
           </div>;
       default:
         return (
