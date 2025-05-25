@@ -38,22 +38,35 @@ export const useQueueStore = create<QueueState>((set, get) => ({
 
   removeFromQueue: (braceletCode) => {
     const currentQueue = get().queue;
-    const updatedQueue = currentQueue.filter(q => q.braceletCode !== braceletCode);
+    const entryToRemove = currentQueue.find(q => q.braceletCode === braceletCode);
     
-    // Пересчитываем позиции для каждого аттракциона
-    const reorderedQueue = updatedQueue.map(entry => {
-      const attraction = attractions.find(a => a.id === entry.attractionId);
-      const attractionQueue = updatedQueue.filter(q => q.attractionId === entry.attractionId);
-      const position = attractionQueue.findIndex(q => q.id === entry.id) + 1;
-      
-      if (attraction) {
-        const estimatedTime = new Date(Date.now() + (position * attraction.duration * 60000));
-        return { ...entry, position, estimatedTime };
+    if (!entryToRemove) return;
+    
+    // Simply filter out the entry without recalculating positions immediately
+    const filteredQueue = currentQueue.filter(q => q.braceletCode !== braceletCode);
+    
+    // Only recalculate positions for the affected attraction
+    const affectedAttractionId = entryToRemove.attractionId;
+    const attraction = attractions.find(a => a.id === affectedAttractionId);
+    
+    if (!attraction) {
+      set({ queue: filteredQueue });
+      return;
+    }
+
+    // Recalculate only for the affected attraction
+    const updatedQueue = filteredQueue.map(entry => {
+      if (entry.attractionId === affectedAttractionId) {
+        const attractionEntries = filteredQueue.filter(q => q.attractionId === affectedAttractionId);
+        const newPosition = attractionEntries.findIndex(q => q.id === entry.id) + 1;
+        const newEstimatedTime = new Date(Date.now() + (newPosition * attraction.duration * 60000));
+        
+        return { ...entry, position: newPosition, estimatedTime: newEstimatedTime };
       }
       return entry;
     });
 
-    set({ queue: reorderedQueue });
+    set({ queue: updatedQueue });
   },
 
   getQueueSummary: () => {
