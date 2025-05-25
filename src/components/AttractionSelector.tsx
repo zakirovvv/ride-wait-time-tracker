@@ -11,16 +11,16 @@ interface AttractionSelectorProps {
 
 // Массив изображений для аттракционов в правильном порядке
 const attractionImages = [
-  'photo-1618160702438-9b02ab6515c9', // 1) Прыжки с веревкой
-  'photo-1721322800607-8c38375eef04', // 2) Парные качели
-  'photo-1472396961693-142e6e269027', // 3) Веревочный парк
-  'photo-1466721591366-2d5fba72006d', // 4) Качели
-  'photo-1493962853295-0fd70327578a', // 5) Скалодром
-  'photo-1618160702438-9b02ab6515c9', // 6) Мини-троллей
-  'photo-1721322800607-8c38375eef04', // 7) Троллей
-  'photo-1472396961693-142e6e269027', // 8) Спуск в грот
-  'photo-1466721591366-2d5fba72006d', // 9) Большой мост
-  'photo-1493962853295-0fd70327578a', // 10) Малый мост
+  '/lovable-uploads/4e621593-728c-4d3f-b758-ac47af2c1b71.png', // 1) Прыжки с веревкой
+  '/lovable-uploads/d90e2c18-0d63-474d-a0ad-b4ab41f073e2.png', // 2) Парные качели
+  '/lovable-uploads/bfb56542-ad55-4945-bdbe-23e5b147a37e.png', // 3) Веревочный парк
+  '/lovable-uploads/fb4895e9-0890-4a53-b1d2-0d899df19acb.png', // 4) Качели
+  '/lovable-uploads/ef96dd51-f393-4a54-bc8c-ebb65f550417.png', // 5) Скалодром
+  '/lovable-uploads/5702511a-d0a3-48b7-a43b-b4765a60b250.png', // 6) Мини-троллей
+  '/lovable-uploads/52a21e36-ac6c-403f-bd7e-c1291b3c5348.png', // 7) Троллей
+  '/lovable-uploads/de689068-a78b-42e0-a997-06c7484035a2.png', // 8) Спуск в грот
+  '/lovable-uploads/946fd121-8251-4571-8256-f748dd105d38.png', // 9) Большой мост
+  '/lovable-uploads/f8cb5353-142e-4008-9505-721b648c9745.png', // 10) Малый мост
   null, // 11) Вертолет - пока нет картинки
 ];
 
@@ -52,7 +52,7 @@ export const AttractionSelector = ({ onAttractionSelect, onRoleSelect }: Attract
                     {imageUrl ? (
                       <div className="w-full mb-2 rounded-lg overflow-hidden">
                         <img 
-                          src={`https://images.unsplash.com/${imageUrl}`}
+                          src={imageUrl}
                           alt={attraction.name}
                           className="w-full h-auto object-contain"
                           onError={(e) => {
