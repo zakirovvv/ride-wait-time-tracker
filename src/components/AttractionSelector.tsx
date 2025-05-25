@@ -9,19 +9,19 @@ interface AttractionSelectorProps {
   onRoleSelect: (role: 'visitor' | 'cashier' | 'operator') => void;
 }
 
-// Массив изображений для аттракционов в том же порядке, что вы указали
+// Массив изображений для аттракционов в правильном порядке
 const attractionImages = [
-  'https://images.unsplash.com/photo-1472396961693-142e6e269027?w=400&h=300&fit=crop', // Прыжки с веревкой
-  'https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=400&h=300&fit=crop', // Парные качели
-  'https://images.unsplash.com/photo-1500673922987-e212871fec22?w=400&h=300&fit=crop', // Веревочный парк
-  'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&h=300&fit=crop', // Качели
-  'https://images.unsplash.com/photo-1472396961693-142e6e269027?w=400&h=300&fit=crop', // Скалодром
-  'https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=400&h=300&fit=crop', // Мини-троллей
-  'https://images.unsplash.com/photo-1500673922987-e212871fec22?w=400&h=300&fit=crop', // Троллей
-  'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&h=300&fit=crop', // Спуск в грот
-  'https://images.unsplash.com/photo-1472396961693-142e6e269027?w=400&h=300&fit=crop', // Большой мост
-  'https://images.unsplash.com/photo-1487887235947-a955ef187fcc?w=400&h=300&fit=crop', // Малый мост
-  null, // Вертолет - пока нет картинки
+  '/lovable-uploads/4e621593-728c-4d3f-b758-ac47af2c1b71.png', // 1) Прыжки с веревкой
+  '/lovable-uploads/d90e2c18-0d63-474d-a0ad-b4ab41f073e2.png', // 2) Парные качели
+  '/lovable-uploads/bfb56542-ad55-4945-bdbe-23e5b147a37e.png', // 3) Веревочный парк
+  '/lovable-uploads/fb4895e9-0890-4a53-b1d2-0d899df19acb.png', // 4) Качели
+  '/lovable-uploads/ef96dd51-f393-4a54-bc8c-ebb65f550417.png', // 5) Скалодром
+  '/lovable-uploads/5702511a-d0a3-48b7-a43b-b4765a60b250.png', // 6) Мини-троллей
+  '/lovable-uploads/52a21e36-ac6c-403f-bd7e-c1291b3c5348.png', // 7) Троллей
+  '/lovable-uploads/de689068-a78b-42e0-a997-06c7484035a2.png', // 8) Спуск в грот
+  '/lovable-uploads/946fd121-8251-4571-8256-f748dd105d38.png', // 9) Большой мост
+  '/lovable-uploads/f8cb5353-142e-4008-9505-721b648c9745.png', // 10) Малый мост
+  null, // 11) Вертолет - пока нет картинки
 ];
 
 export const AttractionSelector = ({ onAttractionSelect, onRoleSelect }: AttractionSelectorProps) => {
@@ -57,11 +57,15 @@ export const AttractionSelector = ({ onAttractionSelect, onRoleSelect }: Attract
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             console.log(`Failed to load image for ${attraction.name}`);
-                            e.currentTarget.style.display = 'none';
-                            e.currentTarget.nextElementSibling!.style.display = 'block';
+                            const target = e.currentTarget as HTMLImageElement;
+                            const fallback = target.parentElement?.querySelector('.fallback-icon') as HTMLDivElement;
+                            if (fallback) {
+                              target.style.display = 'none';
+                              fallback.style.display = 'flex';
+                            }
                           }}
                         />
-                        <div className="w-full h-full flex items-center justify-center text-4xl bg-gray-100" style={{display: 'none'}}>
+                        <div className="fallback-icon w-full h-full flex items-center justify-center text-4xl bg-gray-100" style={{display: 'none'}}>
                           {attraction.icon}
                         </div>
                       </div>
