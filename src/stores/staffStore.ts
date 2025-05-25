@@ -45,6 +45,8 @@ interface StaffStore extends AuthState {
   login: (username: string, password: string) => boolean;
   logout: () => void;
   getStaffByRole: (role: string) => StaffMember[];
+  hasInstructorPermissions: (user: StaffMember | null) => boolean;
+  hasAdminPermissions: (user: StaffMember | null) => boolean;
 }
 
 export const useStaffStore = create<StaffStore>((set, get) => ({
@@ -76,5 +78,13 @@ export const useStaffStore = create<StaffStore>((set, get) => ({
   
   getStaffByRole: (role: string) => {
     return get().staffMembers.filter(s => s.role === role);
+  },
+
+  hasInstructorPermissions: (user: StaffMember | null) => {
+    return user?.role === 'instructor' || user?.role === 'admin';
+  },
+
+  hasAdminPermissions: (user: StaffMember | null) => {
+    return user?.role === 'admin';
   }
 }));
