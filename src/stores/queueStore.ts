@@ -144,3 +144,8 @@ export const useQueueStore = create<QueueState>((set, get) => ({
     return attractionQueue;
   }
 }));
+
+// Функция для автоматического обновления очередей при изменении настроек
+export const updateQueuesWhenSettingsChange = () => {
+  useQueueStore.getState().updateQueueSummary();
+};

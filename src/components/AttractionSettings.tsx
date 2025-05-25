@@ -6,11 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { attractions } from '@/data/attractions';
 import { useAttractionSettingsStore } from '@/stores/attractionSettingsStore';
+import { useQueueStore } from '@/stores/queueStore';
 import { toast } from '@/hooks/use-toast';
 import { Settings, Timer, Save } from 'lucide-react';
 
 export const AttractionSettings = () => {
   const { settings, updateDuration, getDuration } = useAttractionSettingsStore();
+  const updateQueueSummary = useQueueStore(state => state.updateQueueSummary);
   const [tempSettings, setTempSettings] = useState<Record<string, string>>({});
 
   const handleDurationChange = (attractionId: string, value: string) => {
@@ -32,6 +34,10 @@ export const AttractionSettings = () => {
     }
 
     updateDuration(attractionId, Number(value));
+    
+    // Пересчитываем очереди с новым временем
+    updateQueueSummary();
+    
     setTempSettings(prev => {
       const newSettings = { ...prev };
       delete newSettings[attractionId];
@@ -40,7 +46,7 @@ export const AttractionSettings = () => {
 
     toast({
       title: "Настройки сохранены",
-      description: `Время для аттракциона обновлено`
+      description: `Время для аттракциона обновлено и очереди пересчитаны`
     });
   };
 
