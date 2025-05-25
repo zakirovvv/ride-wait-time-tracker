@@ -11,6 +11,8 @@ interface QueueState {
   removeFromQueue: (braceletCode: string) => void;
   getAttractionQueue: (attractionId: string) => QueueEntry[];
   updateQueueSummary: () => void;
+  loadFromStorage: () => void;
+  saveToStorage: () => void;
 }
 
 const calculateQueueSummary = (queue: QueueEntry[]): QueueSummary[] => {
@@ -18,10 +20,8 @@ const calculateQueueSummary = (queue: QueueEntry[]): QueueSummary[] => {
     const attractionQueue = queue.filter(q => q.attractionId === attraction.id);
     const queueLength = attractionQueue.length;
     
-    // Получаем актуальное время из настроек
     const currentDuration = useAttractionSettingsStore.getState().getDuration(attraction.id);
     
-    // Первый человек идет сразу, остальные ждут
     const estimatedWaitTime = queueLength > 0 ? (queueLength - 1) * currentDuration : 0;
     const nextAvailableTime = new Date(Date.now() + (estimatedWaitTime * 60000));
 
@@ -39,6 +39,46 @@ export const useQueueStore = create<QueueState>((set, get) => ({
   queue: [],
   queueSummary: calculateQueueSummary([]),
 
+  loadFromStorage: () => {
+    try {
+      const stored = localStorage.getItem('park-queue');
+      if (stored) {
+        const data = JSON.parse(stored);
+        const queue = data.map((entry: any) => ({
+          ...entry,
+          timeAdded: new Date(entry.timeAdded),
+          estimatedTime: new Date(entry.estimatedTime)
+        }));
+        
+        const queueSummary = calculateQueueSummary(queue);
+        set({ queue, queueSummary });
+        console.log('Loaded queue from storage:', queue.length, 'entries');
+      }
+    } catch (error) {
+      console.error('Error loading queue from storage:', error);
+    }
+  },
+
+  saveToStorage: () => {
+    try {
+      const { queue } = get();
+      localStorage.setItem('park-queue', JSON.stringify(queue));
+      
+      // Уведомляем другие устройства об изменении
+      const channel = new BroadcastChannel('park-sync');
+      channel.postMessage({
+        type: 'queue_update',
+        data: queue,
+        timestamp: Date.now()
+      });
+      channel.close();
+      
+      console.log('Saved queue to storage and broadcast update');
+    } catch (error) {
+      console.error('Error saving queue to storage:', error);
+    }
+  },
+
   updateQueueSummary: () => {
     const currentQueue = get().queue;
     const newSummary = calculateQueueSummary(currentQueue);
@@ -52,12 +92,10 @@ export const useQueueStore = create<QueueState>((set, get) => ({
     
     if (!attraction) return;
 
-    // Получаем актуальное время из настроек
     const currentDuration = useAttractionSettingsStore.getState().getDuration(attraction.id);
 
     const position = attractionQueue.length + 1;
     const timeAdded = new Date();
-    // Первый человек (position = 1) идет сразу, остальные ждут
     const waitTime = position === 1 ? 0 : (position - 1) * currentDuration;
     const estimatedTime = new Date(timeAdded.getTime() + (waitTime * 60000));
 
@@ -73,54 +111,42 @@ export const useQueueStore = create<QueueState>((set, get) => ({
     const newSummary = calculateQueueSummary(newQueue);
     set({ queue: newQueue, queueSummary: newSummary });
     
+    // Сохраняем и синхронизируем
+    get().saveToStorage();
+    
     console.log('Added to queue:', newEntry);
-    console.log('New queue length:', newQueue.length);
   },
 
   removeFromQueue: (braceletCode) => {
     console.log('Attempting to remove bracelet code:', braceletCode);
     
     const currentQueue = get().queue;
-    console.log('Current queue before removal:', currentQueue.length, 'entries');
-    
     const entryToRemove = currentQueue.find(q => q.braceletCode === braceletCode);
     
     if (!entryToRemove) {
       console.log('Entry not found for bracelet code:', braceletCode);
-      console.log('Available bracelet codes:', currentQueue.map(q => q.braceletCode));
       return;
     }
     
-    console.log('Found entry to remove:', entryToRemove);
-    
-    // Simply filter out the entry
     const filteredQueue = currentQueue.filter(q => q.braceletCode !== braceletCode);
-    console.log('Queue after filtering:', filteredQueue.length, 'entries');
-    
-    // Only recalculate positions for the affected attraction
     const affectedAttractionId = entryToRemove.attractionId;
     const attraction = attractions.find(a => a.id === affectedAttractionId);
     
     if (!attraction) {
       const newSummary = calculateQueueSummary(filteredQueue);
       set({ queue: filteredQueue, queueSummary: newSummary });
-      console.log('Updated queue (no attraction found):', filteredQueue.length);
+      get().saveToStorage();
       return;
     }
 
-    // Получаем актуальное время из настроек
     const currentDuration = useAttractionSettingsStore.getState().getDuration(attraction.id);
 
-    // Recalculate only for the affected attraction
     const updatedQueue = filteredQueue.map(entry => {
       if (entry.attractionId === affectedAttractionId) {
         const attractionEntries = filteredQueue.filter(q => q.attractionId === affectedAttractionId);
         const newPosition = attractionEntries.findIndex(q => q.id === entry.id) + 1;
-        // Первый человек идет сразу, остальные ждут
         const waitTime = newPosition === 1 ? 0 : (newPosition - 1) * currentDuration;
         const newEstimatedTime = new Date(Date.now() + (waitTime * 60000));
-        
-        console.log(`Updated position for ${entry.braceletCode}: ${entry.position} -> ${newPosition}`);
         
         return { ...entry, position: newPosition, estimatedTime: newEstimatedTime };
       }
@@ -130,7 +156,9 @@ export const useQueueStore = create<QueueState>((set, get) => ({
     const newSummary = calculateQueueSummary(updatedQueue);
     set({ queue: updatedQueue, queueSummary: newSummary });
     
-    console.log('Final updated queue:', updatedQueue.length, 'entries');
+    // Сохраняем и синхронизируем
+    get().saveToStorage();
+    
     console.log('Successfully removed entry for bracelet code:', braceletCode);
   },
 
@@ -140,7 +168,6 @@ export const useQueueStore = create<QueueState>((set, get) => ({
       .filter(q => q.attractionId === attractionId)
       .sort((a, b) => a.position - b.position);
     
-    console.log(`Getting queue for attraction ${attractionId}:`, attractionQueue.length, 'entries');
     return attractionQueue;
   }
 }));
@@ -149,3 +176,15 @@ export const useQueueStore = create<QueueState>((set, get) => ({
 export const updateQueuesWhenSettingsChange = () => {
   useQueueStore.getState().updateQueueSummary();
 };
+
+// Инициализация при загрузке приложения
+if (typeof window !== 'undefined') {
+  // Загружаем данные при старте
+  useQueueStore.getState().loadFromStorage();
+  
+  // Слушаем события синхронизации от других устройств
+  window.addEventListener('queue-sync', (event: CustomEvent) => {
+    console.log('Received queue sync event');
+    useQueueStore.getState().loadFromStorage();
+  });
+}

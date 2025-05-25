@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AttractionSelector } from '@/components/AttractionSelector';
 import { QueueBoard } from '@/components/QueueBoard';
 import { VisitorDashboard } from '@/components/VisitorDashboard';
@@ -9,12 +9,16 @@ import { OperatorInterface } from '@/components/OperatorInterface';
 import { InstructorInterface } from '@/components/InstructorInterface';
 import { StaffLogin } from '@/components/StaffLogin';
 import { useStaffStore } from '@/stores/staffStore';
+import { useBroadcastSync } from '@/hooks/useBroadcastSync';
 import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const [activeView, setActiveView] = useState<'home' | 'queue' | 'visitor' | 'cashier' | 'cashier-display' | 'public-display' | 'operator' | 'instructor' | 'staff-login'>('home');
   const [selectedAttraction, setSelectedAttraction] = useState<string | null>(null);
   const { isAuthenticated, currentUser, logout } = useStaffStore();
+  
+  // Инициализируем синхронизацию между устройствами
+  useBroadcastSync();
 
   const handleStaffLogin = () => {
     setActiveView('staff-login');
@@ -131,6 +135,11 @@ const Index = () => {
           >
             Вход для персонала
           </Button>
+          
+          {/* Индикатор статуса синхронизации */}
+          <div className="fixed bottom-4 left-4 z-50 bg-green-600 text-white px-3 py-1 rounded-full text-sm">
+            🟢 Синхронизация активна
+          </div>
         </>
       )}
       

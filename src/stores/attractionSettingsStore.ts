@@ -1,57 +1,95 @@
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-
-interface AttractionSettings {
-  id: string;
-  duration: number;
-}
+import { AttractionSetting } from '@/types';
+import { attractions } from '@/data/attractions';
 
 interface AttractionSettingsState {
-  settings: Record<string, number>; // attractionId -> duration
+  settings: AttractionSetting[];
   updateDuration: (attractionId: string, duration: number) => void;
   getDuration: (attractionId: string) => number;
+  resetToDefaults: () => void;
+  loadFromStorage: () => void;
+  saveToStorage: () => void;
 }
 
-export const useAttractionSettingsStore = create<AttractionSettingsState>()(
-  persist(
-    (set, get) => ({
-      settings: {},
-      
-      updateDuration: (attractionId: string, duration: number) => {
-        set((state) => ({
-          settings: {
-            ...state.settings,
-            [attractionId]: duration
-          }
-        }));
-      },
-      
-      getDuration: (attractionId: string) => {
-        const settings = get().settings;
-        return settings[attractionId] || getDefaultDuration(attractionId);
-      }
-    }),
-    {
-      name: 'attraction-settings'
-    }
-  )
-);
-
-// Функция для получения стандартного времени аттракциона
-const getDefaultDuration = (attractionId: string): number => {
-  const defaultDurations: Record<string, number> = {
-    '1': 10, // Прыжки с веревкой
-    '2': 8,  // Парные качели
-    '3': 15, // Веревочный парк
-    '4': 6,  // Качели
-    '5': 12, // Скалодром
-    '6': 5,  // Мини-троллей
-    '7': 8,  // Троллей
-    '8': 20, // Спуск в грот
-    '9': 10, // Большой мост
-    '10': 5, // Малый мост
-    '11': 15 // Вертолет
-  };
-  return defaultDurations[attractionId] || 10;
+const getDefaultSettings = (): AttractionSetting[] => {
+  return attractions.map(attraction => ({
+    attractionId: attraction.id,
+    duration: attraction.duration,
+    capacity: attraction.capacity,
+    isActive: attraction.isActive
+  }));
 };
+
+export const useAttractionSettingsStore = create<AttractionSettingsState>((set, get) => ({
+  settings: getDefaultSettings(),
+
+  loadFromStorage: () => {
+    try {
+      const stored = localStorage.getItem('park-settings');
+      if (stored) {
+        const settings = JSON.parse(stored);
+        set({ settings });
+        console.log('Loaded settings from storage');
+      }
+    } catch (error) {
+      console.error('Error loading settings from storage:', error);
+    }
+  },
+
+  saveToStorage: () => {
+    try {
+      const { settings } = get();
+      localStorage.setItem('park-settings', JSON.stringify(settings));
+      
+      // Уведомляем другие устройства об изменении
+      const channel = new BroadcastChannel('park-sync');
+      channel.postMessage({
+        type: 'settings_update',
+        data: settings,
+        timestamp: Date.now()
+      });
+      channel.close();
+      
+      console.log('Saved settings to storage and broadcast update');
+    } catch (error) {
+      console.error('Error saving settings to storage:', error);
+    }
+  },
+
+  updateDuration: (attractionId: string, duration: number) => {
+    set(state => ({
+      settings: state.settings.map(setting =>
+        setting.attractionId === attractionId
+          ? { ...setting, duration }
+          : setting
+      )
+    }));
+    
+    // Сохраняем и синхронизируем
+    get().saveToStorage();
+  },
+
+  getDuration: (attractionId: string) => {
+    const setting = get().settings.find(s => s.attractionId === attractionId);
+    return setting?.duration || attractions.find(a => a.id === attractionId)?.duration || 5;
+  },
+
+  resetToDefaults: () => {
+    const defaultSettings = getDefaultSettings();
+    set({ settings: defaultSettings });
+    get().saveToStorage();
+  }
+}));
+
+// Инициализация при загрузке приложения
+if (typeof window !== 'undefined') {
+  // Загружаем данные при старте
+  useAttractionSettingsStore.getState().loadFromStorage();
+  
+  // Слушаем события синхронизации от других устройств
+  window.addEventListener('settings-sync', (event: CustomEvent) => {
+    console.log('Received settings sync event');
+    useAttractionSettingsStore.getState().loadFromStorage();
+  });
+}
