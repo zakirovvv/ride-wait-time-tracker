@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { attractions } from '@/data/attractions';
@@ -90,37 +89,21 @@ export const AttractionSelector = ({ onAttractionSelect, onRoleSelect }: Attract
           })}
         </div>
 
-        {/* Панель администрирования */}
+        {/* Панель для посетителей */}
         <Card className="bg-white/90 backdrop-blur-sm max-w-md mx-auto">
           <CardHeader>
             <CardTitle className="text-center text-gray-800">
-              Панель управления
+              Панель посетителя
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="flex justify-center">
               <Button
                 onClick={() => onRoleSelect('visitor')}
-                className="flex flex-col items-center gap-2 h-20 bg-purple-600 hover:bg-purple-700"
+                className="flex flex-col items-center gap-2 h-20 bg-purple-600 hover:bg-purple-700 px-8"
               >
                 <Eye className="w-5 h-5" />
-                <span className="text-xs">Посетители</span>
-              </Button>
-              
-              <Button
-                onClick={() => onRoleSelect('cashier')}
-                className="flex flex-col items-center gap-2 h-20 bg-blue-600 hover:bg-blue-700"
-              >
-                <CreditCard className="w-5 h-5" />
-                <span className="text-xs">Касса</span>
-              </Button>
-              
-              <Button
-                onClick={() => onRoleSelect('operator')}
-                className="flex flex-col items-center gap-2 h-20 bg-orange-600 hover:bg-orange-700"
-              >
-                <Settings className="w-5 h-5" />
-                <span className="text-xs">Оператор</span>
+                <span className="text-sm">Проверить очередь</span>
               </Button>
             </div>
           </CardContent>

@@ -6,15 +6,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQueueStore } from '@/stores/queueStore';
+import { useStaffStore } from '@/stores/staffStore';
 import { attractions } from '@/data/attractions';
 import { toast } from '@/hooks/use-toast';
-import { Ticket, User, Clock } from 'lucide-react';
+import { Ticket, User, Clock, LogOut, Timer } from 'lucide-react';
 
 export const CashierInterface = () => {
   const [customerName, setCustomerName] = useState('');
   const [selectedAttraction, setSelectedAttraction] = useState('');
   const addToQueue = useQueueStore(state => state.addToQueue);
   const queueSummary = useQueueStore(state => state.queueSummary);
+  const { currentUser, logout } = useStaffStore();
 
   const generateBraceletCode = () => {
     return `BR${Date.now().toString(36).toUpperCase().slice(-6)}`;
@@ -43,21 +45,44 @@ export const CashierInterface = () => {
       description: `Браслет ${braceletCode} выдан посетителю ${customerName}`,
     });
 
-    // Очищаем форму
     setCustomerName('');
     setSelectedAttraction('');
+  };
+
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Выход выполнен",
+      description: "До свидания!"
+    });
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-green-500 to-teal-400 p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-4 drop-shadow-lg">
-            🎫 Касса - Продажа Билетов
-          </h1>
-          <p className="text-lg text-white/90 drop-shadow">
-            Продавайте билеты и выдавайте браслеты посетителям
-          </p>
+        {/* Заголовок с информацией о пользователе */}
+        <div className="flex justify-between items-center mb-8">
+          <div className="text-center flex-1">
+            <h1 className="text-4xl font-bold text-white mb-4 drop-shadow-lg">
+              🎫 Касса - Продажа Билетов
+            </h1>
+            <p className="text-lg text-white/90 drop-shadow">
+              Продавайте билеты и выдавайте браслеты посетителям
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="text-white mb-2">
+              <span className="font-semibold">{currentUser?.name}</span>
+            </div>
+            <Button 
+              onClick={handleLogout}
+              variant="outline"
+              className="bg-white/20 text-white border-white/30 hover:bg-white/30"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Выход
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -103,7 +128,7 @@ export const CashierInterface = () => {
                             <span className="mr-2">{attraction.icon}</span>
                             <span className="mr-2">{attraction.name}</span>
                             <span className="text-sm text-gray-500">
-                              ({summary?.queueLength || 0} в очереди)
+                              ({summary?.queueLength || 0} в очереди, {attraction.duration} мин)
                             </span>
                           </div>
                         </SelectItem>
@@ -123,12 +148,12 @@ export const CashierInterface = () => {
             </CardContent>
           </Card>
 
-          {/* Статистика очередей */}
+          {/* Статистика очередей с временем */}
           <Card className="bg-white/95 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center text-2xl text-gray-800">
                 <Clock className="w-6 h-6 mr-2 text-green-600" />
-                Текущие очереди
+                Текущие очереди и время
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -143,7 +168,8 @@ export const CashierInterface = () => {
                         <span className="text-2xl mr-3">{attraction.icon}</span>
                         <div>
                           <div className="font-semibold text-gray-800">{attraction.name}</div>
-                          <div className="text-sm text-gray-500">
+                          <div className="flex items-center text-sm text-gray-500">
+                            <Timer className="w-3 h-3 mr-1" />
                             {attraction.duration} мин на человека
                           </div>
                         </div>
@@ -153,7 +179,7 @@ export const CashierInterface = () => {
                           {summary.queueLength} чел.
                         </div>
                         <div className="text-sm text-gray-500">
-                          ~{summary.estimatedWaitTime} мин
+                          ~{summary.estimatedWaitTime} мин ожидания
                         </div>
                       </div>
                     </div>
