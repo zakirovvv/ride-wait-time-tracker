@@ -5,14 +5,39 @@ import { attractions } from '@/data/attractions';
 
 interface QueueState {
   queue: QueueEntry[];
+  queueSummary: QueueSummary[];
   addToQueue: (entry: Omit<QueueEntry, 'id' | 'timeAdded' | 'estimatedTime' | 'position'>) => void;
   removeFromQueue: (braceletCode: string) => void;
-  getQueueSummary: () => QueueSummary[];
   getAttractionQueue: (attractionId: string) => QueueEntry[];
+  updateQueueSummary: () => void;
 }
+
+const calculateQueueSummary = (queue: QueueEntry[]): QueueSummary[] => {
+  return attractions.map(attraction => {
+    const attractionQueue = queue.filter(q => q.attractionId === attraction.id);
+    const queueLength = attractionQueue.length;
+    const estimatedWaitTime = queueLength * attraction.duration;
+    const nextAvailableTime = new Date(Date.now() + (estimatedWaitTime * 60000));
+
+    return {
+      attractionId: attraction.id,
+      attractionName: attraction.name,
+      queueLength,
+      estimatedWaitTime,
+      nextAvailableTime
+    };
+  });
+};
 
 export const useQueueStore = create<QueueState>((set, get) => ({
   queue: [],
+  queueSummary: calculateQueueSummary([]),
+
+  updateQueueSummary: () => {
+    const currentQueue = get().queue;
+    const newSummary = calculateQueueSummary(currentQueue);
+    set({ queueSummary: newSummary });
+  },
 
   addToQueue: (entry) => {
     const currentQueue = get().queue;
@@ -33,7 +58,9 @@ export const useQueueStore = create<QueueState>((set, get) => ({
       position
     };
 
-    set({ queue: [...currentQueue, newEntry] });
+    const newQueue = [...currentQueue, newEntry];
+    const newSummary = calculateQueueSummary(newQueue);
+    set({ queue: newQueue, queueSummary: newSummary });
   },
 
   removeFromQueue: (braceletCode) => {
@@ -50,7 +77,8 @@ export const useQueueStore = create<QueueState>((set, get) => ({
     const attraction = attractions.find(a => a.id === affectedAttractionId);
     
     if (!attraction) {
-      set({ queue: filteredQueue });
+      const newSummary = calculateQueueSummary(filteredQueue);
+      set({ queue: filteredQueue, queueSummary: newSummary });
       return;
     }
 
@@ -66,26 +94,8 @@ export const useQueueStore = create<QueueState>((set, get) => ({
       return entry;
     });
 
-    set({ queue: updatedQueue });
-  },
-
-  getQueueSummary: () => {
-    const currentQueue = get().queue;
-    
-    return attractions.map(attraction => {
-      const attractionQueue = currentQueue.filter(q => q.attractionId === attraction.id);
-      const queueLength = attractionQueue.length;
-      const estimatedWaitTime = queueLength * attraction.duration;
-      const nextAvailableTime = new Date(Date.now() + (estimatedWaitTime * 60000));
-
-      return {
-        attractionId: attraction.id,
-        attractionName: attraction.name,
-        queueLength,
-        estimatedWaitTime,
-        nextAvailableTime
-      };
-    });
+    const newSummary = calculateQueueSummary(updatedQueue);
+    set({ queue: updatedQueue, queueSummary: newSummary });
   },
 
   getAttractionQueue: (attractionId) => {

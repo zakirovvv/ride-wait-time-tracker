@@ -6,7 +6,7 @@ import { attractions } from '@/data/attractions';
 import { Clock, Users } from 'lucide-react';
 
 export const VisitorDashboard = () => {
-  const queueSummary = useQueueStore(state => state.getQueueSummary());
+  const queueSummary = useQueueStore(state => state.queueSummary);
 
   const getWaitTimeColor = (waitTime: number) => {
     if (waitTime <= 15) return 'bg-green-500';

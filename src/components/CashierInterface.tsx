@@ -14,7 +14,7 @@ export const CashierInterface = () => {
   const [customerName, setCustomerName] = useState('');
   const [selectedAttraction, setSelectedAttraction] = useState('');
   const addToQueue = useQueueStore(state => state.addToQueue);
-  const queueSummary = useQueueStore(state => state.getQueueSummary());
+  const queueSummary = useQueueStore(state => state.queueSummary);
 
   const generateBraceletCode = () => {
     return `BR${Date.now().toString(36).toUpperCase().slice(-6)}`;

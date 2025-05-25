@@ -16,7 +16,7 @@ export const OperatorInterface = () => {
   
   const removeFromQueue = useQueueStore(state => state.removeFromQueue);
   const getAttractionQueue = useQueueStore(state => state.getAttractionQueue);
-  const queueSummary = useQueueStore(state => state.getQueueSummary());
+  const queueSummary = useQueueStore(state => state.queueSummary);
 
   const currentQueue = selectedAttraction ? getAttractionQueue(selectedAttraction) : [];
   const currentAttraction = attractions.find(a => a.id === selectedAttraction);
