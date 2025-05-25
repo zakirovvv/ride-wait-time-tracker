@@ -126,10 +126,7 @@ export const InstructorInterface = () => {
           
 
           {/* Статус очереди */}
-          <Card className="bg-white/95 backdrop-blur-sm">
-            
-            
-          </Card>
+          
         </div>
 
         {/* Полная очередь */}
