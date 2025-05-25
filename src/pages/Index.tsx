@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AttractionSelector } from '@/components/AttractionSelector';
 import { QueueBoard } from '@/components/QueueBoard';
@@ -23,7 +22,7 @@ const Index = () => {
 
   const handleLoginSuccess = () => {
     // Перенаправляем пользователя в зависимости от его роли
-    if (currentUser?.role === 'cashier' || currentUser?.role === 'admin') {
+    if (currentUser?.role === 'cashier') {
       setActiveView('cashier');
     } else if (currentUser?.role === 'instructor') {
       setActiveView('instructor');
@@ -58,7 +57,7 @@ const Index = () => {
         return isAuthenticated && (currentUser?.role === 'cashier' || currentUser?.role === 'admin') ? 
           <CashierInterface /> : 
           <div className="min-h-screen flex items-center justify-center">
-            <p className="text-red-600">Доступ запрещен</p>
+            <p className="text-red-600">Доступ запрещен. Требуется роль кассира или администратора.</p>
           </div>;
       case 'cashier-display':
         return <CashierDisplay />;
@@ -66,13 +65,13 @@ const Index = () => {
         return isAuthenticated && currentUser?.role === 'instructor' ? 
           <InstructorInterface /> : 
           <div className="min-h-screen flex items-center justify-center">
-            <p className="text-red-600">Доступ запрещен</p>
+            <p className="text-red-600">Доступ запрещен. Требуется роль инструктора.</p>
           </div>;
       case 'operator':
         return isAuthenticated && currentUser?.role === 'admin' ? 
           <OperatorInterface /> : 
           <div className="min-h-screen flex items-center justify-center">
-            <p className="text-red-600">Доступ запрещен</p>
+            <p className="text-red-600">Доступ запрещен. Требуется роль администратора.</p>
           </div>;
       default:
         return (
