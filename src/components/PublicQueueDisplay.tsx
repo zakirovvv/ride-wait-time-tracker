@@ -1,5 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useQueueStore } from '@/stores/queueStore';
 import { attractions } from '@/data/attractions';
 import { Clock, Users, Timer } from 'lucide-react';
@@ -8,10 +9,10 @@ export const PublicQueueDisplay = () => {
   const queueSummary = useQueueStore(state => state.queueSummary);
 
   const getStatusColor = (waitTime: number) => {
-    if (waitTime === 0) return 'bg-green-500';
-    if (waitTime <= 15) return 'bg-yellow-500';
-    if (waitTime <= 30) return 'bg-orange-500';
-    return 'bg-red-500';
+    if (waitTime === 0) return 'text-green-600 bg-green-50';
+    if (waitTime <= 15) return 'text-yellow-600 bg-yellow-50';
+    if (waitTime <= 30) return 'text-orange-600 bg-orange-50';
+    return 'text-red-600 bg-red-50';
   };
 
   const getStatusText = (waitTime: number) => {
@@ -30,7 +31,7 @@ export const PublicQueueDisplay = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 p-6">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">
             🎢 Информация по аттракционам
@@ -47,100 +48,130 @@ export const PublicQueueDisplay = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {queueSummary
-            .filter(summary => {
-              const attraction = attractions.find(a => a.id === summary.attractionId);
-              return attraction && attraction.isActive;
-            })
-            .sort((a, b) => a.estimatedWaitTime - b.estimatedWaitTime)
-            .map((summary) => {
-              const attraction = attractions.find(a => a.id === summary.attractionId);
-              if (!attraction) return null;
-
-              const nextAvailableTime = new Date(Date.now() + (summary.estimatedWaitTime * 60000));
-
-              return (
-                <Card key={summary.attractionId} className="bg-white/95 backdrop-blur-sm border-2 hover:scale-105 transition-all duration-300 shadow-xl">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-4xl">{attraction.icon}</div>
-                      <div 
-                        className={`${getStatusColor(summary.estimatedWaitTime)} text-white px-3 py-1 rounded-full text-sm font-bold`}
-                      >
-                        {getStatusText(summary.estimatedWaitTime)}
-                      </div>
+        <Card className="bg-white/95 backdrop-blur-sm shadow-2xl">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-2xl text-center text-gray-800">
+              📊 Состояние очередей
+            </CardTitle>
+          </CardHeader>
+          
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b-2">
+                  <TableHead className="text-center font-bold text-gray-700">Аттракцион</TableHead>
+                  <TableHead className="text-center font-bold text-gray-700">
+                    <div className="flex items-center justify-center gap-2">
+                      <Users className="w-4 h-4" />
+                      В очереди
                     </div>
-                    <CardTitle className="text-xl text-gray-800 leading-tight">
-                      {attraction.name}
-                    </CardTitle>
-                    <div className="text-center py-2">
-                      <span className="text-lg font-bold text-purple-600">
-                        {getRecommendation(summary.estimatedWaitTime)}
-                      </span>
+                  </TableHead>
+                  <TableHead className="text-center font-bold text-gray-700">
+                    <div className="flex items-center justify-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      Ожидание
                     </div>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-4">
-                    {/* Количество в очереди */}
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center text-gray-700">
-                        <Users className="w-5 h-5 mr-2" />
-                        <span className="font-medium">В очереди:</span>
-                      </div>
-                      <span className="font-bold text-xl text-blue-600">
-                        {summary.queueLength} чел.
-                      </span>
+                  </TableHead>
+                  <TableHead className="text-center font-bold text-gray-700">
+                    <div className="flex items-center justify-center gap-2">
+                      <Timer className="w-4 h-4" />
+                      Длительность
                     </div>
+                  </TableHead>
+                  <TableHead className="text-center font-bold text-gray-700">Статус</TableHead>
+                  <TableHead className="text-center font-bold text-gray-700">Время прохода</TableHead>
+                  <TableHead className="text-center font-bold text-gray-700">Рекомендация</TableHead>
+                </TableRow>
+              </TableHeader>
+              
+              <TableBody>
+                {queueSummary
+                  .filter(summary => {
+                    const attraction = attractions.find(a => a.id === summary.attractionId);
+                    return attraction && attraction.isActive;
+                  })
+                  .sort((a, b) => a.estimatedWaitTime - b.estimatedWaitTime)
+                  .map((summary) => {
+                    const attraction = attractions.find(a => a.id === summary.attractionId);
+                    if (!attraction) return null;
 
-                    {/* Время ожидания */}
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center text-gray-700">
-                        <Clock className="w-5 h-5 mr-2" />
-                        <span className="font-medium">Ожидание:</span>
-                      </div>
-                      <span className="font-bold text-xl text-orange-600">
-                        {summary.estimatedWaitTime === 0 ? 'Сейчас' : `${summary.estimatedWaitTime} мин`}
-                      </span>
-                    </div>
+                    const nextAvailableTime = new Date(Date.now() + (summary.estimatedWaitTime * 60000));
 
-                    {/* Длительность аттракциона */}
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center text-gray-700">
-                        <Timer className="w-5 h-5 mr-2" />
-                        <span className="font-medium">Длительность:</span>
-                      </div>
-                      <span className="font-semibold text-gray-600">
-                        {attraction.duration} мин
-                      </span>
-                    </div>
-
-                    {/* Время когда можно будет пройти */}
-                    {summary.estimatedWaitTime > 0 ? (
-                      <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <div className="text-sm text-gray-600 mb-1">Если купить билет сейчас:</div>
-                        <div className="font-bold text-blue-700 text-lg">
-                          Можете пройти в {nextAvailableTime.toLocaleTimeString('ru-RU', { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
-                        <div className="font-bold text-green-700 text-lg">
-                          ✅ Можете проходить сразу!
-                        </div>
-                        <div className="text-sm text-green-600">
-                          Идите к кассе за билетом
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-        </div>
+                    return (
+                      <TableRow key={summary.attractionId} className="hover:bg-gray-50 transition-colors">
+                        <TableCell className="text-center">
+                          <div className="flex items-center gap-3 justify-center">
+                            <span className="text-2xl">{attraction.icon}</span>
+                            <div>
+                              <div className="font-semibold text-gray-800">{attraction.name}</div>
+                              <div className="text-sm text-gray-500">{attraction.description}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        
+                        <TableCell className="text-center">
+                          <span className="font-bold text-xl text-blue-600">
+                            {summary.queueLength} чел.
+                          </span>
+                        </TableCell>
+                        
+                        <TableCell className="text-center">
+                          <span className="font-bold text-xl text-orange-600">
+                            {summary.estimatedWaitTime === 0 ? 'Сейчас' : `${summary.estimatedWaitTime} мин`}
+                          </span>
+                        </TableCell>
+                        
+                        <TableCell className="text-center">
+                          <span className="font-semibold text-gray-600">
+                            {attraction.duration} мин
+                          </span>
+                        </TableCell>
+                        
+                        <TableCell className="text-center">
+                          <span 
+                            className={`${getStatusColor(summary.estimatedWaitTime)} px-3 py-1 rounded-full text-sm font-bold`}
+                          >
+                            {getStatusText(summary.estimatedWaitTime)}
+                          </span>
+                        </TableCell>
+                        
+                        <TableCell className="text-center">
+                          {summary.estimatedWaitTime > 0 ? (
+                            <div className="text-center">
+                              <div className="font-bold text-blue-700">
+                                {nextAvailableTime.toLocaleTimeString('ru-RU', { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                если купить сейчас
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-center">
+                              <div className="font-bold text-green-700">
+                                ✅ Сразу
+                              </div>
+                              <div className="text-xs text-green-600">
+                                можете проходить
+                              </div>
+                            </div>
+                          )}
+                        </TableCell>
+                        
+                        <TableCell className="text-center">
+                          <span className="font-bold text-purple-600">
+                            {getRecommendation(summary.estimatedWaitTime)}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
 
         {/* Совет и легенда */}
         <div className="mt-8 space-y-4">
