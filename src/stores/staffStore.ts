@@ -29,7 +29,7 @@ const createStaffMembers = (): StaffMember[] => {
     { attractionId: 'jump-rope', username: 'jumprow', password: 'jumprow6809', name: 'Инструктор - Прыжок с веревкой' },
     { attractionId: 'swing-two', username: 'twoswing', password: 'twoswing6809', name: 'Инструктор - Парные качели' },
     { attractionId: 'rope-park', username: 'rope', password: 'rope6809', name: 'Инструктор - Веревочный парк' },
-    { attractionId: 'swing', username: 'swing', password: 'swing6809', name: 'Инструктор - Качели' },
+    { attractionId: 'swing-single', username: 'swing', password: 'swing6809', name: 'Инструктор - Качели' },
     { attractionId: 'climbing', username: 'climbing', password: 'climbing6809', name: 'Инструктор - Скалодром' },
     { attractionId: 'mini-trolley', username: 'minitrolley', password: 'minitrolley6809', name: 'Инструктор - Мини-троллей' },
     { attractionId: 'trolley', username: 'trolley', password: 'trolley6809', name: 'Инструктор - Троллей' },
