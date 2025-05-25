@@ -2,8 +2,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQueueStore } from '@/stores/queueStore';
 import { useStaffStore } from '@/stores/staffStore';
@@ -12,7 +10,6 @@ import { toast } from '@/hooks/use-toast';
 import { Users, CheckCircle, Clock, LogOut, AlertCircle, Settings } from 'lucide-react';
 
 export const InstructorInterface = () => {
-  const [braceletCodeToComplete, setBraceletCodeToComplete] = useState('');
   const [selectedAttraction, setSelectedAttraction] = useState('');
   
   const {
@@ -73,43 +70,6 @@ export const InstructorInterface = () => {
     console.log('Ride completion processed');
   };
 
-  const handleQuickComplete = () => {
-    const trimmedCode = braceletCodeToComplete.trim().toUpperCase();
-    console.log('Quick complete attempt for code:', trimmedCode);
-    if (!trimmedCode) {
-      toast({
-        title: "Ошибка",
-        description: "Введите код браслета",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    if (!attractionId) {
-      toast({
-        title: "Ошибка",
-        description: "Выберите аттракцион",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const entry = queue.find(q => q.braceletCode.toUpperCase() === trimmedCode);
-    console.log('Found entry:', entry);
-    console.log('Available entries:', queue.map(q => q.braceletCode));
-    if (entry) {
-      handleCompleteRide(entry.braceletCode, entry.customerName);
-      setBraceletCodeToComplete('');
-    } else {
-      console.log('Entry not found for code:', trimmedCode);
-      toast({
-        title: "Браслет не найден",
-        description: "Проверьте код браслета",
-        variant: "destructive"
-      });
-    }
-  };
-
   const handleLogout = () => {
     logout();
     toast({
@@ -142,7 +102,7 @@ export const InstructorInterface = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Выбор аттракциона для админа */}
           {isAdmin && (
             <Card className="bg-white/95 backdrop-blur-sm">
@@ -153,9 +113,6 @@ export const InstructorInterface = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <Label htmlFor="attraction" className="text-gray-700">
-                  Аттракцион для управления
-                </Label>
                 <Select value={selectedAttraction} onValueChange={setSelectedAttraction}>
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Выберите аттракцион..." />
@@ -222,125 +179,41 @@ export const InstructorInterface = () => {
               </CardContent>
             </Card>
           )}
-
-          {/* Быстрое завершение */}
-          <Card className="bg-white/95 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center text-xl text-gray-800">
-                <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
-                Завершить катание
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="quickComplete" className="text-gray-700">
-                  Код браслета для завершения
-                </Label>
-                <Input
-                  id="quickComplete"
-                  value={braceletCodeToComplete}
-                  onChange={(e) => setBraceletCodeToComplete(e.target.value.toUpperCase())}
-                  placeholder="Например: BR1A2B3C"
-                  className="mt-1"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleQuickComplete();
-                    }
-                  }}
-                />
-              </div>
-              <Button 
-                onClick={handleQuickComplete}
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
-                disabled={!attractionId}
-              >
-                <CheckCircle className="w-4 h-4 mr-1" />
-                Завершить катание
-              </Button>
-              {!attractionId && (
-                <p className="text-xs text-gray-500 text-center">
-                  {isAdmin ? 'Выберите аттракцион для завершения катания' : 'Аттракцион не назначен'}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Статус очереди */}
-          {attraction && (
-            <Card className="lg:col-span-3 bg-white/95 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center text-xl text-gray-800">
-                  <Clock className="w-5 h-5 mr-2 text-blue-600" />
-                  Статус очереди
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {queue.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>Очередь пуста</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="text-sm text-gray-600 mb-4">
-                      Следующие в очереди:
-                    </div>
-                    {queue.slice(0, 5).map((entry, index) => (
-                      <div key={entry.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center">
-                          <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <div className="font-semibold text-gray-800 text-sm">{entry.customerName}</div>
-                            <div className="text-xs text-gray-500">
-                              {entry.braceletCode}
-                            </div>
-                          </div>
-                        </div>
-                        <Button
-                          onClick={() => handleCompleteRide(entry.braceletCode, entry.customerName)}
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                          size="sm"
-                        >
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Готово
-                        </Button>
-                      </div>
-                    ))}
-                    {queue.length > 5 && (
-                      <div className="text-center text-sm text-gray-500 pt-2">
-                        и ещё {queue.length - 5} человек в очереди
-                      </div>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
         </div>
 
-        {/* Полная очередь */}
+        {/* Очередь для завершения */}
         {attraction && (
           <Card className="mt-6 bg-white/95 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center text-2xl text-gray-800">
                 <Users className="w-6 h-6 mr-2 text-blue-600" />
-                Очередь аттракциона: {attraction.name}
+                Очередь: {attraction.name}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {queue.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Очередь пуста</p>
+                  <p className="text-xl">Очередь пуста</p>
+                  <p className="text-sm mt-2">Посетители могут проходить сразу</p>
                 </div>
               ) : (
                 <div className="space-y-3">
+                  <div className="text-sm text-gray-600 mb-4">
+                    Нажмите "Завершить" когда посетитель закончил катание:
+                  </div>
                   {queue.map((entry, index) => (
-                    <div key={entry.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div key={entry.id} className={`flex items-center justify-between p-4 rounded-lg border-2 ${
+                      index === 0 
+                        ? 'bg-green-50 border-green-200' 
+                        : 'bg-gray-50 border-gray-200'
+                    }`}>
                       <div className="flex items-center">
-                        <div className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-4">
+                        <div className={`rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-4 ${
+                          index === 0 
+                            ? 'bg-green-600 text-white' 
+                            : 'bg-blue-600 text-white'
+                        }`}>
                           {index + 1}
                         </div>
                         <div>
@@ -348,20 +221,21 @@ export const InstructorInterface = () => {
                           <div className="text-sm text-gray-500">
                             Браслет: {entry.braceletCode}
                           </div>
-                          <div className="text-xs text-gray-400">
-                            Ожидаемое время: {entry.estimatedTime.toLocaleTimeString('ru-RU', {
+                          <div className="text-xs text-gray-400 flex items-center">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {index === 0 ? 'Сейчас катается' : `Время: ${entry.estimatedTime.toLocaleTimeString('ru-RU', {
                               hour: '2-digit',
                               minute: '2-digit'
-                            })}
+                            })}`}
                           </div>
                         </div>
                       </div>
                       <Button
                         onClick={() => handleCompleteRide(entry.braceletCode, entry.customerName)}
                         className="bg-green-600 hover:bg-green-700 text-white"
-                        size="sm"
+                        size="lg"
                       >
-                        <CheckCircle className="w-4 h-4 mr-1" />
+                        <CheckCircle className="w-4 h-4 mr-2" />
                         Завершить
                       </Button>
                     </div>
