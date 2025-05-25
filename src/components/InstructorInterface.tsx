@@ -21,27 +21,39 @@ export const InstructorInterface = () => {
   const {
     removeFromQueue,
     getAttractionQueue,
-    queue: globalQueue // Подписываемся на глобальное состояние очереди
+    queue: globalQueue
   } = useQueueStore();
 
   const isAdmin = hasAdminPermissions(currentUser);
+
+  // Добавляем отладочную информацию
+  console.log('InstructorInterface: Current user:', currentUser);
+  console.log('InstructorInterface: Is admin:', isAdmin);
+  console.log('InstructorInterface: User attraction ID:', currentUser?.attractionId);
+
+  // Определяем ID аттракциона
   const attractionId = isAdmin ? selectedAttraction : currentUser?.attractionId;
   const attraction = attractions.find(a => a.id === attractionId);
+
+  console.log('InstructorInterface: Selected attraction ID:', attractionId);
+  console.log('InstructorInterface: Found attraction:', attraction);
 
   // Устанавливаем аттракцион для инструктора автоматически
   useEffect(() => {
     if (!isAdmin && currentUser?.attractionId) {
       setSelectedAttraction(currentUser.attractionId);
+      console.log('InstructorInterface: Auto-selected attraction for instructor:', currentUser.attractionId);
     }
   }, [currentUser, isAdmin]);
 
-  // Получаем очередь напрямую из store, чтобы она обновлялась автоматически
+  // Получаем очередь напрямую из store
   const queue = attractionId ? getAttractionQueue(attractionId) : [];
 
-  // Добавляем console.log для отладки
+  // Отладочная информация
   useEffect(() => {
     console.log('InstructorInterface: Current queue for attraction', attractionId, ':', queue.length, 'entries');
     console.log('InstructorInterface: Global queue size:', globalQueue.length);
+    console.log('InstructorInterface: Queue entries:', queue);
   }, [queue, attractionId, globalQueue]);
 
   const handleCompleteRide = (braceletCode: string, customerName: string) => {
@@ -52,7 +64,6 @@ export const InstructorInterface = () => {
       title: "Катание завершено!",
       description: `${customerName} (${braceletCode}) успешно прокатился`
     });
-    console.log('Ride completion processed');
   };
 
   const handleLogout = () => {
@@ -62,6 +73,24 @@ export const InstructorInterface = () => {
       description: "До свидания!"
     });
   };
+
+  // Если пользователь не инструктор и не админ, показываем ошибку
+  if (!currentUser || (currentUser.role !== 'instructor' && !isAdmin)) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-500 to-blue-500 p-6 flex items-center justify-center">
+        <Card className="bg-white/95 backdrop-blur-sm max-w-md">
+          <CardContent className="p-6 text-center">
+            <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-500" />
+            <h2 className="text-xl font-bold text-gray-800 mb-2">Доступ запрещен</h2>
+            <p className="text-gray-600 mb-4">Требуется роль инструктора или администратора</p>
+            <Button onClick={handleLogout} variant="outline">
+              Выход
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-500 to-blue-500 p-6">
@@ -86,6 +115,17 @@ export const InstructorInterface = () => {
             </Button>
           </div>
         </div>
+
+        {/* Сообщение если нет назначенного аттракциона */}
+        {!isAdmin && !currentUser?.attractionId && (
+          <Card className="mb-6 bg-yellow-50 border-yellow-200">
+            <CardContent className="p-6 text-center">
+              <AlertCircle className="w-12 h-12 mx-auto mb-4 text-yellow-600" />
+              <h2 className="text-xl font-bold text-yellow-800 mb-2">Аттракцион не назначен</h2>
+              <p className="text-yellow-700">Обратитесь к администратору для назначения аттракциона</p>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Выбор аттракциона для админа */}
@@ -230,6 +270,21 @@ export const InstructorInterface = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Отладочная информация (временно для проверки) */}
+        <Card className="mt-6 bg-gray-50 border-gray-300">
+          <CardHeader>
+            <CardTitle className="text-lg text-gray-700">Отладочная информация</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-gray-600">
+            <div>Пользователь: {currentUser?.name} ({currentUser?.role})</div>
+            <div>ID аттракциона пользователя: {currentUser?.attractionId || 'не назначен'}</div>
+            <div>Выбранный аттракцион: {attractionId || 'не выбран'}</div>
+            <div>Найден аттракцион: {attraction ? attraction.name : 'нет'}</div>
+            <div>Размер очереди: {queue.length}</div>
+            <div>Общий размер очереди: {globalQueue.length}</div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
