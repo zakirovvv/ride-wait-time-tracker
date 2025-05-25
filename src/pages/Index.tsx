@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AttractionSelector } from '@/components/AttractionSelector';
 import { QueueBoard } from '@/components/QueueBoard';
@@ -108,16 +107,6 @@ const Index = () => {
         >
           ← Главная
         </button>
-      )}
-      
-      {/* Кнопки в интерфейсе кассира */}
-      {activeView === 'cashier' && (
-        <Button
-          onClick={() => setActiveView('cashier-display')}
-          className="fixed top-4 right-4 z-50 bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
-        >
-          📊 Табло кассы
-        </Button>
       )}
       
       {activeView === 'cashier-display' && (
