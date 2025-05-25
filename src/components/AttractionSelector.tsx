@@ -76,9 +76,7 @@ export const AttractionSelector = ({
                   <div className="text-xs text-gray-600 text-center">
                     Длительность: {attraction.duration} мин
                   </div>
-                  <div className="text-xs text-gray-600 text-center">
-                    Вместимость: {attraction.capacity} чел
-                  </div>
+                  
                 </CardContent>
               </Card>;
         })}
