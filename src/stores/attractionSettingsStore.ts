@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { AttractionSetting } from '@/types';
 import { attractions } from '@/data/attractions';
@@ -42,16 +41,12 @@ export const useAttractionSettingsStore = create<AttractionSettingsState>((set, 
       const { settings } = get();
       localStorage.setItem('park-settings', JSON.stringify(settings));
       
-      // Уведомляем другие устройства об изменении
-      const channel = new BroadcastChannel('park-sync');
-      channel.postMessage({
-        type: 'settings_update',
-        data: settings,
-        timestamp: Date.now()
-      });
-      channel.close();
+      // Уведомляем другие устройства через WebRTC
+      window.dispatchEvent(new CustomEvent('broadcast-settings-update', { 
+        detail: { settings, timestamp: Date.now() } 
+      }));
       
-      console.log('Saved settings to storage and broadcast update');
+      console.log('Saved settings to storage and triggered WebRTC broadcast');
     } catch (error) {
       console.error('Error saving settings to storage:', error);
     }
@@ -87,9 +82,20 @@ if (typeof window !== 'undefined') {
   // Загружаем данные при старте
   useAttractionSettingsStore.getState().loadFromStorage();
   
-  // Слушаем события синхронизации от других устройств
+  // Слушаем события синхронизации от других устройств через WebRTC
   window.addEventListener('settings-sync', (event: CustomEvent) => {
-    console.log('Received settings sync event');
-    useAttractionSettingsStore.getState().loadFromStorage();
+    console.log('Received settings sync event from WebRTC');
+    const settingsData = event.detail;
+    if (settingsData && Array.isArray(settingsData)) {
+      // Обновляем localStorage с данными от другого устройства
+      localStorage.setItem('park-settings', JSON.stringify(settingsData));
+      // Перезагружаем данные
+      useAttractionSettingsStore.getState().loadFromStorage();
+    }
+  });
+
+  // Слушаем события для отправки обновлений через WebRTC
+  window.addEventListener('broadcast-settings-update', (event: CustomEvent) => {
+    // Это событие будет перехвачено useBroadcastSync для отправки через WebRTC
   });
 }

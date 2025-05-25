@@ -26,3 +26,25 @@ export interface QueueSummary {
   estimatedWaitTime: number; // в минутах
   nextAvailableTime: Date;
 }
+
+export interface AttractionSetting {
+  attractionId: string;
+  duration: number;
+  capacity: number;
+  isActive: boolean;
+}
+
+export interface PeerMessage {
+  type: 'queue_update' | 'settings_update' | 'ping' | 'init';
+  data: any;
+  timestamp: number;
+  deviceId: string;
+}
+
+export interface PeerConnection {
+  id: string;
+  connection: RTCPeerConnection;
+  dataChannel?: RTCDataChannel;
+  isConnected: boolean;
+  isHost: boolean;
+}

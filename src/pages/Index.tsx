@@ -11,6 +11,7 @@ import { StaffLogin } from '@/components/StaffLogin';
 import { useStaffStore } from '@/stores/staffStore';
 import { useBroadcastSync } from '@/hooks/useBroadcastSync';
 import { Button } from '@/components/ui/button';
+import { NetworkManager } from '@/components/NetworkManager';
 
 const Index = () => {
   const [activeView, setActiveView] = useState<'home' | 'queue' | 'visitor' | 'cashier' | 'cashier-display' | 'public-display' | 'operator' | 'instructor' | 'staff-login'>('home');
@@ -52,13 +53,20 @@ const Index = () => {
     switch (activeView) {
       case 'home':
         return (
-          <AttractionSelector 
-            onAttractionSelect={(attractionId) => {
-              setSelectedAttraction(attractionId);
-              setActiveView('queue');
-            }}
-            onRoleSelect={(role) => setActiveView(role)}
-          />
+          <div className="space-y-6">
+            <AttractionSelector 
+              onAttractionSelect={(attractionId) => {
+                setSelectedAttraction(attractionId);
+                setActiveView('queue');
+              }}
+              onRoleSelect={(role) => setActiveView(role)}
+            />
+            
+            {/* Добавляем NetworkManager на главную страницу */}
+            <div className="max-w-md mx-auto">
+              <NetworkManager />
+            </div>
+          </div>
         );
       case 'queue':
         return selectedAttraction ? <QueueBoard attractionId={selectedAttraction} /> : null;

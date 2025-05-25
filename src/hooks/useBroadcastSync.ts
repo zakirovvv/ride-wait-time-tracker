@@ -1,5 +1,6 @@
 
 import { useEffect } from 'react';
+import { useWebRTCSync } from './useWebRTCSync';
 
 type SyncMessage = {
   type: 'queue_update' | 'settings_update';
@@ -8,68 +9,63 @@ type SyncMessage = {
 };
 
 export const useBroadcastSync = () => {
-  useEffect(() => {
-    // Создаем канал для синхронизации
-    const channel = new BroadcastChannel('park-sync');
+  const { broadcastMessage, isConnected } = useWebRTCSync();
 
-    // Слушаем сообщения от других устройств/вкладок
-    channel.onmessage = (event: MessageEvent<SyncMessage>) => {
-      const { type, data, timestamp } = event.data;
-      
-      console.log('Received sync message:', type, data);
-      
-      // Проверяем, не слишком ли старое сообщение (избегаем бесконечных циклов)
-      const now = Date.now();
-      if (now - timestamp > 1000) return; // Игнорируем сообщения старше 1 секунды
-      
-      switch (type) {
-        case 'queue_update':
-          // Обновляем данные очереди из localStorage
-          const queueData = localStorage.getItem('park-queue');
-          if (queueData) {
-            try {
-              const parsedData = JSON.parse(queueData);
-              // Принудительно обновляем store
-              window.dispatchEvent(new CustomEvent('queue-sync', { detail: parsedData }));
-            } catch (error) {
-              console.error('Error parsing queue data:', error);
-            }
-          }
-          break;
-          
-        case 'settings_update':
-          // Обновляем настройки из localStorage
-          const settingsData = localStorage.getItem('park-settings');
-          if (settingsData) {
-            try {
-              const parsedData = JSON.parse(settingsData);
-              window.dispatchEvent(new CustomEvent('settings-sync', { detail: parsedData }));
-            } catch (error) {
-              console.error('Error parsing settings data:', error);
-            }
-          }
-          break;
+  useEffect(() => {
+    // Обработчик для отправки обновлений очереди
+    const handleQueueBroadcast = (event: CustomEvent) => {
+      if (isConnected) {
+        broadcastMessage({
+          type: 'queue_update',
+          data: event.detail.queue
+        });
       }
     };
 
-    return () => {
-      channel.close();
+    // Обработчик для отправки обновлений настроек
+    const handleSettingsBroadcast = (event: CustomEvent) => {
+      if (isConnected) {
+        broadcastMessage({
+          type: 'settings_update',
+          data: event.detail.settings
+        });
+      }
     };
-  }, []);
 
-  // Функция для отправки обновлений другим устройствам
+    // Слушаем события от stores для отправки через WebRTC
+    window.addEventListener('broadcast-queue-update', handleQueueBroadcast as EventListener);
+    window.addEventListener('broadcast-settings-update', handleSettingsBroadcast as EventListener);
+
+    return () => {
+      window.removeEventListener('broadcast-queue-update', handleQueueBroadcast as EventListener);
+      window.removeEventListener('broadcast-settings-update', handleSettingsBroadcast as EventListener);
+    };
+  }, [broadcastMessage, isConnected]);
+
+  // Функция для отправки обновлений другим устройствам (legacy совместимость)
   const broadcastUpdate = (type: SyncMessage['type'], data: any) => {
-    const channel = new BroadcastChannel('park-sync');
+    console.log('Broadcasting update via WebRTC:', type, data);
+    
+    if (isConnected) {
+      broadcastMessage({
+        type,
+        data
+      });
+    }
+
+    // Fallback через localStorage для совместимости
     const message: SyncMessage = {
       type,
       data,
       timestamp: Date.now()
     };
     
-    console.log('Broadcasting update:', type, data);
-    channel.postMessage(message);
-    channel.close();
+    try {
+      localStorage.setItem('last-sync-message', JSON.stringify(message));
+    } catch (error) {
+      console.error('Error with localStorage fallback:', error);
+    }
   };
 
-  return { broadcastUpdate };
+  return { broadcastUpdate, isConnected };
 };
