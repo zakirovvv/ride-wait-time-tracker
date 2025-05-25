@@ -28,7 +28,8 @@ const attractionImages = ['/lovable-uploads/4e621593-728c-4d3f-b758-ac47af2c1b71
 // 9) Большой мост
 '/lovable-uploads/f8cb5353-142e-4008-9505-721b648c9745.png',
 // 10) Малый мост
-null // 11) Вертолет - пока нет картинки
+'/lovable-uploads/4bc2bf84-6043-4426-ae05-2316c214a2b1.png'
+// 11) Вертолет - обновлено новым изображением
 ];
 export const AttractionSelector = ({
   onAttractionSelect,
