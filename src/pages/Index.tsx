@@ -5,6 +5,7 @@ import { QueueBoard } from '@/components/QueueBoard';
 import { VisitorDashboard } from '@/components/VisitorDashboard';
 import { CashierInterface } from '@/components/CashierInterface';
 import { CashierDisplay } from '@/components/CashierDisplay';
+import { PublicQueueDisplay } from '@/components/PublicQueueDisplay';
 import { OperatorInterface } from '@/components/OperatorInterface';
 import { InstructorInterface } from '@/components/InstructorInterface';
 import { StaffLogin } from '@/components/StaffLogin';
@@ -12,7 +13,7 @@ import { useStaffStore } from '@/stores/staffStore';
 import { Button } from '@/components/ui/button';
 
 const Index = () => {
-  const [activeView, setActiveView] = useState<'home' | 'queue' | 'visitor' | 'cashier' | 'cashier-display' | 'operator' | 'instructor' | 'staff-login'>('home');
+  const [activeView, setActiveView] = useState<'home' | 'queue' | 'visitor' | 'cashier' | 'cashier-display' | 'public-display' | 'operator' | 'instructor' | 'staff-login'>('home');
   const [selectedAttraction, setSelectedAttraction] = useState<string | null>(null);
   const { isAuthenticated, currentUser } = useStaffStore();
 
@@ -51,6 +52,8 @@ const Index = () => {
         return selectedAttraction ? <QueueBoard attractionId={selectedAttraction} /> : null;
       case 'visitor':
         return <VisitorDashboard selectedAttraction={selectedAttraction} />;
+      case 'public-display':
+        return <PublicQueueDisplay />;
       case 'cashier':
         return isAuthenticated && (currentUser?.role === 'cashier' || currentUser?.role === 'admin') ? 
           <CashierInterface /> : 
@@ -114,14 +117,23 @@ const Index = () => {
         </Button>
       )}
       
-      {/* Кнопка входа для персонала */}
+      {/* Кнопки на главной странице */}
       {activeView === 'home' && (
-        <Button
-          onClick={handleStaffLogin}
-          className="fixed top-4 right-4 z-50 bg-gray-800 hover:bg-gray-900 text-white shadow-lg"
-        >
-          Вход для персонала
-        </Button>
+        <>
+          <Button
+            onClick={() => setActiveView('public-display')}
+            className="fixed top-4 left-4 z-50 bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+          >
+            📊 Информация по аттракционам
+          </Button>
+          
+          <Button
+            onClick={handleStaffLogin}
+            className="fixed top-4 right-4 z-50 bg-gray-800 hover:bg-gray-900 text-white shadow-lg"
+          >
+            Вход для персонала
+          </Button>
+        </>
       )}
       
       {renderActiveView()}
