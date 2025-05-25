@@ -64,16 +64,30 @@ export const useQueueStore = create<QueueState>((set, get) => ({
     const newQueue = [...currentQueue, newEntry];
     const newSummary = calculateQueueSummary(newQueue);
     set({ queue: newQueue, queueSummary: newSummary });
+    
+    console.log('Added to queue:', newEntry);
+    console.log('New queue length:', newQueue.length);
   },
 
   removeFromQueue: (braceletCode) => {
+    console.log('Attempting to remove bracelet code:', braceletCode);
+    
     const currentQueue = get().queue;
+    console.log('Current queue before removal:', currentQueue.length, 'entries');
+    
     const entryToRemove = currentQueue.find(q => q.braceletCode === braceletCode);
     
-    if (!entryToRemove) return;
+    if (!entryToRemove) {
+      console.log('Entry not found for bracelet code:', braceletCode);
+      console.log('Available bracelet codes:', currentQueue.map(q => q.braceletCode));
+      return;
+    }
     
-    // Simply filter out the entry without recalculating positions immediately
+    console.log('Found entry to remove:', entryToRemove);
+    
+    // Simply filter out the entry
     const filteredQueue = currentQueue.filter(q => q.braceletCode !== braceletCode);
+    console.log('Queue after filtering:', filteredQueue.length, 'entries');
     
     // Only recalculate positions for the affected attraction
     const affectedAttractionId = entryToRemove.attractionId;
@@ -82,6 +96,7 @@ export const useQueueStore = create<QueueState>((set, get) => ({
     if (!attraction) {
       const newSummary = calculateQueueSummary(filteredQueue);
       set({ queue: filteredQueue, queueSummary: newSummary });
+      console.log('Updated queue (no attraction found):', filteredQueue.length);
       return;
     }
 
@@ -94,6 +109,8 @@ export const useQueueStore = create<QueueState>((set, get) => ({
         const waitTime = newPosition === 1 ? 0 : (newPosition - 1) * attraction.duration;
         const newEstimatedTime = new Date(Date.now() + (waitTime * 60000));
         
+        console.log(`Updated position for ${entry.braceletCode}: ${entry.position} -> ${newPosition}`);
+        
         return { ...entry, position: newPosition, estimatedTime: newEstimatedTime };
       }
       return entry;
@@ -101,12 +118,18 @@ export const useQueueStore = create<QueueState>((set, get) => ({
 
     const newSummary = calculateQueueSummary(updatedQueue);
     set({ queue: updatedQueue, queueSummary: newSummary });
+    
+    console.log('Final updated queue:', updatedQueue.length, 'entries');
+    console.log('Successfully removed entry for bracelet code:', braceletCode);
   },
 
   getAttractionQueue: (attractionId) => {
     const currentQueue = get().queue;
-    return currentQueue
+    const attractionQueue = currentQueue
       .filter(q => q.attractionId === attractionId)
       .sort((a, b) => a.position - b.position);
+    
+    console.log(`Getting queue for attraction ${attractionId}:`, attractionQueue.length, 'entries');
+    return attractionQueue;
   }
 }));

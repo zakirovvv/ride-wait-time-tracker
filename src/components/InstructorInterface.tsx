@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,16 +20,24 @@ export const InstructorInterface = () => {
   const queue = attractionId ? getAttractionQueue(attractionId) : [];
 
   const handleCompleteRide = (braceletCode: string, customerName: string) => {
+    console.log('Instructor completing ride for:', braceletCode, customerName);
+    
     removeFromQueue(braceletCode);
     
     toast({
       title: "Катание завершено!",
       description: `${customerName} (${braceletCode}) успешно прокатился`,
     });
+    
+    console.log('Ride completion processed');
   };
 
   const handleQuickComplete = () => {
-    if (!braceletCodeToComplete.trim()) {
+    const trimmedCode = braceletCodeToComplete.trim().toUpperCase();
+    
+    console.log('Quick complete attempt for code:', trimmedCode);
+    
+    if (!trimmedCode) {
       toast({
         title: "Ошибка",
         description: "Введите код браслета",
@@ -39,11 +46,15 @@ export const InstructorInterface = () => {
       return;
     }
 
-    const entry = queue.find(q => q.braceletCode === braceletCodeToComplete.trim());
+    const entry = queue.find(q => q.braceletCode.toUpperCase() === trimmedCode);
+    console.log('Found entry:', entry);
+    console.log('Available entries:', queue.map(q => q.braceletCode));
+    
     if (entry) {
       handleCompleteRide(entry.braceletCode, entry.customerName);
       setBraceletCodeToComplete('');
     } else {
+      console.log('Entry not found for code:', trimmedCode);
       toast({
         title: "Браслет не найден",
         description: "Проверьте код браслета",
