@@ -1,12 +1,13 @@
 
 import { useState } from 'react';
 import { AttractionSelector } from '@/components/AttractionSelector';
+import { QueueBoard } from '@/components/QueueBoard';
 import { VisitorDashboard } from '@/components/VisitorDashboard';
 import { CashierInterface } from '@/components/CashierInterface';
 import { OperatorInterface } from '@/components/OperatorInterface';
 
 const Index = () => {
-  const [activeView, setActiveView] = useState<'home' | 'visitor' | 'cashier' | 'operator'>('home');
+  const [activeView, setActiveView] = useState<'home' | 'queue' | 'visitor' | 'cashier' | 'operator'>('home');
   const [selectedAttraction, setSelectedAttraction] = useState<string | null>(null);
 
   const renderActiveView = () => {
@@ -16,11 +17,13 @@ const Index = () => {
           <AttractionSelector 
             onAttractionSelect={(attractionId) => {
               setSelectedAttraction(attractionId);
-              setActiveView('visitor');
+              setActiveView('queue');
             }}
             onRoleSelect={(role) => setActiveView(role)}
           />
         );
+      case 'queue':
+        return selectedAttraction ? <QueueBoard attractionId={selectedAttraction} /> : null;
       case 'visitor':
         return <VisitorDashboard selectedAttraction={selectedAttraction} />;
       case 'cashier':
@@ -32,7 +35,7 @@ const Index = () => {
           <AttractionSelector 
             onAttractionSelect={(attractionId) => {
               setSelectedAttraction(attractionId);
-              setActiveView('visitor');
+              setActiveView('queue');
             }}
             onRoleSelect={(role) => setActiveView(role)}
           />
