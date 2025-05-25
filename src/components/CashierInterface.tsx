@@ -9,21 +9,17 @@ import { useQueueStore } from '@/stores/queueStore';
 import { useStaffStore } from '@/stores/staffStore';
 import { attractions } from '@/data/attractions';
 import { toast } from '@/hooks/use-toast';
-import { Ticket, User, Clock, LogOut, Timer } from 'lucide-react';
+import { Ticket, Hash, Clock, LogOut, Timer } from 'lucide-react';
 
 export const CashierInterface = () => {
-  const [customerName, setCustomerName] = useState('');
+  const [braceletCode, setBraceletCode] = useState('');
   const [selectedAttraction, setSelectedAttraction] = useState('');
   const addToQueue = useQueueStore(state => state.addToQueue);
   const queueSummary = useQueueStore(state => state.queueSummary);
   const { currentUser, logout } = useStaffStore();
 
-  const generateBraceletCode = () => {
-    return `BR${Date.now().toString(36).toUpperCase().slice(-6)}`;
-  };
-
   const handleSellTicket = () => {
-    if (!customerName.trim() || !selectedAttraction) {
+    if (!braceletCode.trim() || !selectedAttraction) {
       toast({
         title: "Ошибка",
         description: "Заполните все поля",
@@ -32,20 +28,18 @@ export const CashierInterface = () => {
       return;
     }
 
-    const braceletCode = generateBraceletCode();
-    
     addToQueue({
       attractionId: selectedAttraction,
-      braceletCode,
-      customerName: customerName.trim()
+      braceletCode: braceletCode.trim().toUpperCase(),
+      customerName: braceletCode.trim().toUpperCase() // Используем код как имя для совместимости
     });
 
     toast({
       title: "Билет продан!",
-      description: `Браслет ${braceletCode} выдан посетителю ${customerName}`,
+      description: `Браслет с кодом ${braceletCode.trim().toUpperCase()} добавлен в очередь`,
     });
 
-    setCustomerName('');
+    setBraceletCode('');
     setSelectedAttraction('');
   };
 
@@ -67,7 +61,7 @@ export const CashierInterface = () => {
               🎫 Касса - Продажа Билетов
             </h1>
             <p className="text-lg text-white/90 drop-shadow">
-              Продавайте билеты и выдавайте браслеты посетителям
+              Введите код браслета и выберите аттракцион
             </p>
           </div>
           <div className="text-right">
@@ -96,17 +90,18 @@ export const CashierInterface = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <Label htmlFor="customerName" className="text-gray-700">
-                  Имя посетителя
+                <Label htmlFor="braceletCode" className="text-gray-700">
+                  Код браслета
                 </Label>
                 <div className="relative mt-1">
-                  <User className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                  <Hash className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                   <Input
-                    id="customerName"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="Введите имя посетителя"
-                    className="pl-10"
+                    id="braceletCode"
+                    value={braceletCode}
+                    onChange={(e) => setBraceletCode(e.target.value)}
+                    placeholder="Введите код браслета"
+                    className="pl-10 uppercase"
+                    style={{ textTransform: 'uppercase' }}
                   />
                 </div>
               </div>
@@ -143,7 +138,7 @@ export const CashierInterface = () => {
                 className="w-full bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white"
                 size="lg"
               >
-                Продать билет и выдать браслет
+                Добавить в очередь
               </Button>
             </CardContent>
           </Card>
