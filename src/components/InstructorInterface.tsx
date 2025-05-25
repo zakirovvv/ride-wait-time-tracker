@@ -20,7 +20,8 @@ export const InstructorInterface = () => {
   
   const {
     removeFromQueue,
-    getAttractionQueue
+    getAttractionQueue,
+    queue: globalQueue // Подписываемся на глобальное состояние очереди
   } = useQueueStore();
 
   const isAdmin = hasAdminPermissions(currentUser);
@@ -34,35 +35,19 @@ export const InstructorInterface = () => {
     }
   }, [currentUser, isAdmin]);
 
-  // Получаем очередь и обновляем её автоматически
-  const [queue, setQueue] = useState(() => attractionId ? getAttractionQueue(attractionId) : []);
+  // Получаем очередь напрямую из store, чтобы она обновлялась автоматически
+  const queue = attractionId ? getAttractionQueue(attractionId) : [];
 
-  // Обновляем очередь при изменениях
+  // Добавляем console.log для отладки
   useEffect(() => {
-    if (attractionId) {
-      const updateQueue = () => {
-        const currentQueue = getAttractionQueue(attractionId);
-        setQueue(currentQueue);
-      };
-      updateQueue();
-
-      // Обновляем каждые 500ms для синхронизации
-      const interval = setInterval(updateQueue, 500);
-      return () => clearInterval(interval);
-    } else {
-      setQueue([]);
-    }
-  }, [attractionId, getAttractionQueue]);
+    console.log('InstructorInterface: Current queue for attraction', attractionId, ':', queue.length, 'entries');
+    console.log('InstructorInterface: Global queue size:', globalQueue.length);
+  }, [queue, attractionId, globalQueue]);
 
   const handleCompleteRide = (braceletCode: string, customerName: string) => {
     console.log('Instructor completing ride for:', braceletCode, customerName);
     removeFromQueue(braceletCode);
 
-    // Немедленно обновляем локальное состояние
-    if (attractionId) {
-      const updatedQueue = getAttractionQueue(attractionId);
-      setQueue(updatedQueue);
-    }
     toast({
       title: "Катание завершено!",
       description: `${customerName} (${braceletCode}) успешно прокатился`
