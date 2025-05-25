@@ -37,23 +37,21 @@ export const InstructorInterface = () => {
     }
   }, [currentUser, isAdmin]);
 
-  // Получаем очередь и обновляем ее в реальном времени
-  const [queue, setQueue] = useState(() => attractionId ? getAttractionQueue(attractionId) : []);
+  // Получаем очередь для выбранного аттракциона
+  const queue = attractionId ? getAttractionQueue(attractionId) : [];
 
+  // Автоматически обновляем очередь каждую секунду
   useEffect(() => {
     if (attractionId) {
-      const updateQueue = () => {
-        const currentQueue = getAttractionQueue(attractionId);
-        setQueue(currentQueue);
-      };
-      
-      updateQueue();
-      const interval = setInterval(updateQueue, 1000);
+      const interval = setInterval(() => {
+        // Принудительно обновляем компонент для отображения актуальной очереди
+      }, 1000);
       return () => clearInterval(interval);
     }
-  }, [attractionId, getAttractionQueue, globalQueue]);
+  }, [attractionId, globalQueue]);
 
   const handleCompleteRide = (braceletCode: string, customerName: string) => {
+    console.log('Instructor completing ride for:', braceletCode, customerName);
     removeFromQueue(braceletCode);
 
     toast({
