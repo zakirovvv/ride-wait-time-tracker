@@ -1,13 +1,12 @@
 
 import { create } from 'zustand';
 import { StaffMember, AuthState } from '@/types/staff';
-import { attractions } from '@/data/attractions';
 
-// Создаем список персонала
+// Создаем список персонала с новыми учетными данными
 const createStaffMembers = (): StaffMember[] => {
   const staff: StaffMember[] = [];
   
-  // Админ
+  // Админ (остается прежним)
   staff.push({
     id: 'admin-1',
     username: 'admin',
@@ -16,24 +15,38 @@ const createStaffMembers = (): StaffMember[] => {
     name: 'Администратор'
   });
   
-  // Кассир
+  // Кассир с новыми данными
   staff.push({
     id: 'cashier-1',
     username: 'cashier',
-    password: '123',
+    password: 'cashier6809',
     role: 'cashier',
     name: 'Кассир'
   });
   
-  // Инструкторы для каждого аттракциона
-  attractions.forEach((attraction, index) => {
+  // Инструкторы с привязкой к конкретным аттракционам
+  const instructors = [
+    { attractionId: 'jump-rope', username: 'jumprow', password: 'jumprow6809', name: 'Инструктор - Прыжок с веревкой' },
+    { attractionId: 'swing-two', username: 'twoswing', password: 'twoswing6809', name: 'Инструктор - Парные качели' },
+    { attractionId: 'rope-park', username: 'rope', password: 'rope6809', name: 'Инструктор - Веревочный парк' },
+    { attractionId: 'swing', username: 'swing', password: 'swing6809', name: 'Инструктор - Качели' },
+    { attractionId: 'climbing', username: 'climbing', password: 'climbing6809', name: 'Инструктор - Скалодром' },
+    { attractionId: 'mini-trolley', username: 'minitrolley', password: 'minitrolley6809', name: 'Инструктор - Мини-троллей' },
+    { attractionId: 'trolley', username: 'trolley', password: 'trolley6809', name: 'Инструктор - Троллей' },
+    { attractionId: 'cave-descent', username: 'grot', password: 'grot6809', name: 'Инструктор - Спуск в пещеру' },
+    { attractionId: 'big-bridge', username: 'bigmost', password: 'bigmost6809', name: 'Инструктор - Большой мост' },
+    { attractionId: 'small-bridge', username: 'smallmost', password: 'smallmost6809', name: 'Инструктор - Малый мост' },
+    { attractionId: 'helicopter', username: 'helicopter', password: 'helicopter6809', name: 'Инструктор - Вертолет' }
+  ];
+  
+  instructors.forEach((instructor, index) => {
     staff.push({
-      id: `instructor-${attraction.id}`,
-      username: `instructor${attraction.id}`,
-      password: '123',
+      id: `instructor-${instructor.attractionId}`,
+      username: instructor.username,
+      password: instructor.password,
       role: 'instructor',
-      attractionId: attraction.id,
-      name: `Инструктор - ${attraction.name}`
+      attractionId: instructor.attractionId,
+      name: instructor.name
     });
   });
   

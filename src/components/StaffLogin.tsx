@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -95,11 +94,12 @@ export const StaffLogin = ({ onLoginSuccess, onBack }: StaffLoginProps) => {
           </form>
           
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600 font-semibold mb-2">Тестовые аккаунты:</p>
+            <p className="text-sm text-gray-600 font-semibold mb-2">Примеры аккаунтов:</p>
             <div className="space-y-1 text-xs text-gray-500">
               <div>Админ: <span className="font-mono">admin / 123</span></div>
-              <div>Кассир: <span className="font-mono">cashier / 123</span></div>
-              <div>Инструктор: <span className="font-mono">instructor1 / 123</span></div>
+              <div>Кассир: <span className="font-mono">cashier / cashier6809</span></div>
+              <div>Инструктор троллей: <span className="font-mono">trolley / trolley6809</span></div>
+              <div>Инструктор качели: <span className="font-mono">swing / swing6809</span></div>
             </div>
           </div>
         </CardContent>
