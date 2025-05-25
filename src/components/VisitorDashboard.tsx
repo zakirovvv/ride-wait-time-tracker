@@ -5,7 +5,11 @@ import { useQueueStore } from '@/stores/queueStore';
 import { attractions } from '@/data/attractions';
 import { Clock, Users } from 'lucide-react';
 
-export const VisitorDashboard = () => {
+interface VisitorDashboardProps {
+  selectedAttraction?: string | null;
+}
+
+export const VisitorDashboard = ({ selectedAttraction }: VisitorDashboardProps) => {
   const queueSummary = useQueueStore(state => state.queueSummary);
 
   const getWaitTimeColor = (waitTime: number) => {
@@ -22,20 +26,32 @@ export const VisitorDashboard = () => {
     return 'Долго';
   };
 
+  // Фильтруем аттракционы если выбран конкретный
+  const filteredSummary = selectedAttraction 
+    ? queueSummary.filter(s => s.attractionId === selectedAttraction)
+    : queueSummary;
+
+  const titleText = selectedAttraction 
+    ? `${attractions.find(a => a.id === selectedAttraction)?.name} - Очередь`
+    : '🏞️ Парк Приключений';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-yellow-400 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">
-            🎡 Парк Развлечений "Радость"
+            {titleText}
           </h1>
           <p className="text-xl text-white/90 drop-shadow">
-            Узнайте время ожидания и выберите свой аттракцион!
+            {selectedAttraction 
+              ? 'Информация об очереди для выбранного аттракциона'
+              : 'Узнайте время ожидания и выберите свой аттракцион!'
+            }
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {queueSummary.map((summary) => {
+          {filteredSummary.map((summary) => {
             const attraction = attractions.find(a => a.id === summary.attractionId);
             if (!attraction) return null;
 
