@@ -26,38 +26,34 @@ export const InstructorInterface = () => {
 
   const isAdmin = hasAdminPermissions(currentUser);
 
-  // Добавляем отладочную информацию
-  console.log('InstructorInterface: Current user:', currentUser);
-  console.log('InstructorInterface: Is admin:', isAdmin);
-  console.log('InstructorInterface: User attraction ID:', currentUser?.attractionId);
-
   // Определяем ID аттракциона
   const attractionId = isAdmin ? selectedAttraction : currentUser?.attractionId;
   const attraction = attractions.find(a => a.id === attractionId);
-
-  console.log('InstructorInterface: Selected attraction ID:', attractionId);
-  console.log('InstructorInterface: Found attraction:', attraction);
 
   // Устанавливаем аттракцион для инструктора автоматически
   useEffect(() => {
     if (!isAdmin && currentUser?.attractionId) {
       setSelectedAttraction(currentUser.attractionId);
-      console.log('InstructorInterface: Auto-selected attraction for instructor:', currentUser.attractionId);
     }
   }, [currentUser, isAdmin]);
 
-  // Получаем очередь напрямую из store
-  const queue = attractionId ? getAttractionQueue(attractionId) : [];
+  // Получаем очередь и обновляем ее в реальном времени
+  const [queue, setQueue] = useState(() => attractionId ? getAttractionQueue(attractionId) : []);
 
-  // Отладочная информация
   useEffect(() => {
-    console.log('InstructorInterface: Current queue for attraction', attractionId, ':', queue.length, 'entries');
-    console.log('InstructorInterface: Global queue size:', globalQueue.length);
-    console.log('InstructorInterface: Queue entries:', queue);
-  }, [queue, attractionId, globalQueue]);
+    if (attractionId) {
+      const updateQueue = () => {
+        const currentQueue = getAttractionQueue(attractionId);
+        setQueue(currentQueue);
+      };
+      
+      updateQueue();
+      const interval = setInterval(updateQueue, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [attractionId, getAttractionQueue, globalQueue]);
 
   const handleCompleteRide = (braceletCode: string, customerName: string) => {
-    console.log('Instructor completing ride for:', braceletCode, customerName);
     removeFromQueue(braceletCode);
 
     toast({
@@ -270,21 +266,6 @@ export const InstructorInterface = () => {
             </CardContent>
           </Card>
         )}
-
-        {/* Отладочная информация (временно для проверки) */}
-        <Card className="mt-6 bg-gray-50 border-gray-300">
-          <CardHeader>
-            <CardTitle className="text-lg text-gray-700">Отладочная информация</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-gray-600">
-            <div>Пользователь: {currentUser?.name} ({currentUser?.role})</div>
-            <div>ID аттракциона пользователя: {currentUser?.attractionId || 'не назначен'}</div>
-            <div>Выбранный аттракцион: {attractionId || 'не выбран'}</div>
-            <div>Найден аттракцион: {attraction ? attraction.name : 'нет'}</div>
-            <div>Размер очереди: {queue.length}</div>
-            <div>Общий размер очереди: {globalQueue.length}</div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import { Attraction } from '@/types';
 
 export const attractions: Attraction[] = [
   {
-    id: '1',
+    id: 'jump-rope',
     name: 'Прыжки с веревкой',
     duration: 10,
     capacity: 8,
@@ -12,7 +12,7 @@ export const attractions: Attraction[] = [
     icon: '🪂'
   },
   {
-    id: '2',
+    id: 'swing-two',
     name: 'Парные качели',
     duration: 8,
     capacity: 16,
@@ -21,7 +21,7 @@ export const attractions: Attraction[] = [
     icon: '🎢'
   },
   {
-    id: '3',
+    id: 'rope-park',
     name: 'Веревочный парк',
     duration: 15,
     capacity: 12,
@@ -30,7 +30,7 @@ export const attractions: Attraction[] = [
     icon: '🌲'
   },
   {
-    id: '4',
+    id: 'swing-single',
     name: 'Качели',
     duration: 6,
     capacity: 10,
@@ -39,7 +39,7 @@ export const attractions: Attraction[] = [
     icon: '🎠'
   },
   {
-    id: '5',
+    id: 'climbing',
     name: 'Скалодром',
     duration: 12,
     capacity: 6,
@@ -48,7 +48,7 @@ export const attractions: Attraction[] = [
     icon: '🧗'
   },
   {
-    id: '6',
+    id: 'mini-trolley',
     name: 'Мини-троллей',
     duration: 5,
     capacity: 8,
@@ -57,7 +57,7 @@ export const attractions: Attraction[] = [
     icon: '🚁'
   },
   {
-    id: '7',
+    id: 'trolley',
     name: 'Троллей',
     duration: 8,
     capacity: 12,
@@ -66,7 +66,7 @@ export const attractions: Attraction[] = [
     icon: '🚠'
   },
   {
-    id: '8',
+    id: 'cave-descent',
     name: 'Спуск в грот',
     duration: 20,
     capacity: 6,
@@ -75,7 +75,7 @@ export const attractions: Attraction[] = [
     icon: '🕳️'
   },
   {
-    id: '9',
+    id: 'big-bridge',
     name: 'Большой мост',
     duration: 10,
     capacity: 15,
@@ -84,7 +84,7 @@ export const attractions: Attraction[] = [
     icon: '🌉'
   },
   {
-    id: '10',
+    id: 'small-bridge',
     name: 'Малый мост',
     duration: 5,
     capacity: 20,
@@ -93,7 +93,7 @@ export const attractions: Attraction[] = [
     icon: '🚶'
   },
   {
-    id: '11',
+    id: 'helicopter',
     name: 'Вертолет',
     duration: 15,
     capacity: 4,
