@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { QueueEntry, QueueSummary } from '@/types';
 import { attractions } from '@/data/attractions';
@@ -6,12 +7,14 @@ import { useAttractionSettingsStore } from '@/stores/attractionSettingsStore';
 interface QueueState {
   queue: QueueEntry[];
   queueSummary: QueueSummary[];
+  lastUpdate: number;
   addToQueue: (entry: Omit<QueueEntry, 'id' | 'timeAdded' | 'estimatedTime' | 'position'>) => void;
   removeFromQueue: (braceletCode: string) => void;
   getAttractionQueue: (attractionId: string) => QueueEntry[];
   updateQueueSummary: () => void;
   loadFromStorage: () => void;
   saveToStorage: () => void;
+  forceUpdate: () => void;
 }
 
 const calculateQueueSummary = (queue: QueueEntry[]): QueueSummary[] => {
@@ -37,6 +40,11 @@ const calculateQueueSummary = (queue: QueueEntry[]): QueueSummary[] => {
 export const useQueueStore = create<QueueState>((set, get) => ({
   queue: [],
   queueSummary: calculateQueueSummary([]),
+  lastUpdate: Date.now(),
+
+  forceUpdate: () => {
+    set({ lastUpdate: Date.now() });
+  },
 
   loadFromStorage: () => {
     try {
@@ -50,11 +58,11 @@ export const useQueueStore = create<QueueState>((set, get) => ({
         }));
         
         const queueSummary = calculateQueueSummary(queue);
-        set({ queue, queueSummary });
-        console.log('Loaded queue from storage:', queue.length, 'entries');
+        set({ queue, queueSummary, lastUpdate: Date.now() });
+        console.log('✅ Загружена очередь из хранилища:', queue.length, 'записей');
       }
     } catch (error) {
-      console.error('Error loading queue from storage:', error);
+      console.error('❌ Ошибка при загрузке очереди:', error);
     }
   },
 
@@ -68,16 +76,19 @@ export const useQueueStore = create<QueueState>((set, get) => ({
         window.broadcastQueueUpdate(queue);
       }
       
-      console.log('Saved queue to localStorage and sent to server');
+      // Принудительно обновляем состояние для всех подписчиков
+      set({ lastUpdate: Date.now() });
+      
+      console.log('💾 Очередь сохранена и отправлена на сервер');
     } catch (error) {
-      console.error('Error saving queue to storage:', error);
+      console.error('❌ Ошибка при сохранении очереди:', error);
     }
   },
 
   updateQueueSummary: () => {
     const currentQueue = get().queue;
     const newSummary = calculateQueueSummary(currentQueue);
-    set({ queueSummary: newSummary });
+    set({ queueSummary: newSummary, lastUpdate: Date.now() });
   },
 
   addToQueue: (entry) => {
@@ -107,17 +118,17 @@ export const useQueueStore = create<QueueState>((set, get) => ({
     set({ queue: newQueue, queueSummary: newSummary });
     
     get().saveToStorage();
-    console.log('Added to queue:', newEntry);
+    console.log('➕ Добавлено в очередь:', newEntry);
   },
 
   removeFromQueue: (braceletCode) => {
-    console.log('Attempting to remove bracelet code:', braceletCode);
+    console.log('🗑️ Попытка удалить код браслета:', braceletCode);
     
     const currentQueue = get().queue;
     const entryToRemove = currentQueue.find(q => q.braceletCode === braceletCode);
     
     if (!entryToRemove) {
-      console.log('Entry not found for bracelet code:', braceletCode);
+      console.log('❌ Запись не найдена для кода:', braceletCode);
       return;
     }
     
@@ -150,7 +161,7 @@ export const useQueueStore = create<QueueState>((set, get) => ({
     set({ queue: updatedQueue, queueSummary: newSummary });
     
     get().saveToStorage();
-    console.log('Successfully removed entry for bracelet code:', braceletCode);
+    console.log('✅ Успешно удален код браслета:', braceletCode);
   },
 
   getAttractionQueue: (attractionId) => {
@@ -173,7 +184,7 @@ if (typeof window !== 'undefined') {
   
   // Слушаем события синхронизации от других устройств
   window.addEventListener('queue-sync', (event: CustomEvent) => {
-    console.log('Received queue sync from another device');
+    console.log('🔄 Получена синхронизация очереди от другого устройства');
     const queueData = event.detail;
     if (queueData && Array.isArray(queueData)) {
       localStorage.setItem('park-queue', JSON.stringify(queueData));

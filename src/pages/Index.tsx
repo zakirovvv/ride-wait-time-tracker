@@ -10,6 +10,7 @@ import { InstructorInterface } from '@/components/InstructorInterface';
 import { StaffLogin } from '@/components/StaffLogin';
 import { useStaffStore } from '@/stores/staffStore';
 import { useBroadcastSync } from '@/hooks/useBroadcastSync';
+import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { Button } from '@/components/ui/button';
 
 const Index = () => {
@@ -19,6 +20,9 @@ const Index = () => {
   
   // Инициализируем синхронизацию между устройствами
   const { broadcastUpdate, isConnected } = useBroadcastSync();
+  
+  // Подключаем синхронизацию в реальном времени
+  useRealtimeSync();
 
   useEffect(() => {
     // Создаем глобальные функции для синхронизации

@@ -1,8 +1,9 @@
-
+import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useQueueStore } from '@/stores/queueStore';
 import { useAttractionSettingsStore } from '@/stores/attractionSettingsStore';
+import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { attractions } from '@/data/attractions';
 import { Clock, Users } from 'lucide-react';
 
@@ -12,7 +13,21 @@ interface VisitorDashboardProps {
 
 export const VisitorDashboard = ({ selectedAttraction }: VisitorDashboardProps) => {
   const queueSummary = useQueueStore(state => state.queueSummary);
+  const lastUpdate = useQueueStore(state => state.lastUpdate);
   const { getDuration } = useAttractionSettingsStore();
+  
+  // Подключаем синхронизацию в реальном времени
+  useRealtimeSync();
+
+  // Автоматическое обновление каждые 2 секунды для гарантии актуальности
+  useEffect(() => {
+    const interval = setInterval(() => {
+      useQueueStore.getState().loadFromStorage();
+      useQueueStore.getState().updateQueueSummary();
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const getWaitTimeColor = (waitTime: number) => {
     if (waitTime <= 15) return 'bg-green-500';
@@ -50,6 +65,9 @@ export const VisitorDashboard = ({ selectedAttraction }: VisitorDashboardProps) 
               : 'Узнайте время ожидания и выберите свой аттракцион!'
             }
           </p>
+          <div className="text-sm text-white/70 mt-2">
+            🔄 Обновлено: {new Date(lastUpdate).toLocaleTimeString('ru-RU')}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
