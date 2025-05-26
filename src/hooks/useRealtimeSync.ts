@@ -11,15 +11,16 @@ export const useRealtimeSync = () => {
     const handleQueueSync = (event: CustomEvent) => {
       console.log('🔄 Получено обновление очереди в реальном времени');
       queueStore.loadFromStorage();
-      // Принудительно обновляем сводку очереди
       queueStore.updateQueueSummary();
+      // Принудительно обновляем компоненты
+      queueStore.forceUpdate();
     };
 
     const handleSettingsSync = (event: CustomEvent) => {
       console.log('🔄 Получено обновление настроек в реальном времени');
       settingsStore.loadFromStorage();
-      // После обновления настроек нужно пересчитать очереди
       queueStore.updateQueueSummary();
+      queueStore.forceUpdate();
     };
 
     // Подписываемся на события синхронизации
@@ -32,20 +33,29 @@ export const useRealtimeSync = () => {
         console.log('📦 Изменения в localStorage для очереди');
         queueStore.loadFromStorage();
         queueStore.updateQueueSummary();
+        queueStore.forceUpdate();
       }
       if (e.key === 'park-settings') {
         console.log('📦 Изменения в localStorage для настроек');
         settingsStore.loadFromStorage();
         queueStore.updateQueueSummary();
+        queueStore.forceUpdate();
       }
     };
 
     window.addEventListener('storage', handleStorageChange);
 
+    // Дополнительная проверка каждые 1000ms для гарантии синхронизации
+    const syncInterval = setInterval(() => {
+      queueStore.loadFromStorage();
+      queueStore.updateQueueSummary();
+    }, 1000);
+
     return () => {
       window.removeEventListener('queue-sync', handleQueueSync as EventListener);
       window.removeEventListener('settings-sync', handleSettingsSync as EventListener);
       window.removeEventListener('storage', handleStorageChange);
+      clearInterval(syncInterval);
     };
   }, [queueStore, settingsStore]);
 
@@ -54,6 +64,7 @@ export const useRealtimeSync = () => {
       queueStore.loadFromStorage();
       settingsStore.loadFromStorage();
       queueStore.updateQueueSummary();
+      queueStore.forceUpdate();
     }
   };
 };
