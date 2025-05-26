@@ -12,8 +12,7 @@ interface QueueState {
   removeFromQueue: (braceletCode: string) => void;
   getAttractionQueue: (attractionId: string) => QueueEntry[];
   updateQueueSummary: () => void;
-  loadFromStorage: () => void;
-  saveToStorage: () => void;
+  setQueueFromServer: (serverQueue: QueueEntry[]) => void;
   forceUpdate: () => void;
 }
 
@@ -46,43 +45,18 @@ export const useQueueStore = create<QueueState>((set, get) => ({
     set({ lastUpdate: Date.now() });
   },
 
-  loadFromStorage: () => {
-    try {
-      const stored = localStorage.getItem('park-queue');
-      if (stored) {
-        const data = JSON.parse(stored);
-        const queue = data.map((entry: any) => ({
-          ...entry,
-          timeAdded: new Date(entry.timeAdded),
-          estimatedTime: new Date(entry.estimatedTime)
-        }));
-        
-        const queueSummary = calculateQueueSummary(queue);
-        set({ queue, queueSummary, lastUpdate: Date.now() });
-        console.log('✅ Загружена очередь из хранилища:', queue.length, 'записей');
-      }
-    } catch (error) {
-      console.error('❌ Ошибка при загрузке очереди:', error);
-    }
-  },
-
-  saveToStorage: () => {
-    try {
-      const { queue } = get();
-      localStorage.setItem('park-queue', JSON.stringify(queue));
-      
-      // Отправляем обновления на сервер
-      if (window.broadcastQueueUpdate) {
-        window.broadcastQueueUpdate(queue);
-      }
-      
-      // Принудительно обновляем состояние для всех подписчиков
-      set({ lastUpdate: Date.now() });
-      
-      console.log('💾 Очередь сохранена и отправлена на сервер');
-    } catch (error) {
-      console.error('❌ Ошибка при сохранении очереди:', error);
-    }
+  setQueueFromServer: (serverQueue: QueueEntry[]) => {
+    console.log('📥 Установка очереди с сервера:', serverQueue.length, 'записей');
+    
+    // Преобразуем данные с сервера
+    const queue = serverQueue.map((entry: any) => ({
+      ...entry,
+      timeAdded: new Date(entry.timeAdded),
+      estimatedTime: new Date(entry.estimatedTime)
+    }));
+    
+    const queueSummary = calculateQueueSummary(queue);
+    set({ queue, queueSummary, lastUpdate: Date.now() });
   },
 
   updateQueueSummary: () => {
@@ -115,14 +89,18 @@ export const useQueueStore = create<QueueState>((set, get) => ({
 
     const newQueue = [...currentQueue, newEntry];
     const newSummary = calculateQueueSummary(newQueue);
-    set({ queue: newQueue, queueSummary: newSummary });
+    set({ queue: newQueue, queueSummary: newSummary, lastUpdate: Date.now() });
     
-    get().saveToStorage();
-    console.log('➕ Добавлено в очередь:', newEntry);
+    // Отправляем на сервер
+    if (window.broadcastQueueUpdate) {
+      window.broadcastQueueUpdate(newQueue);
+    }
+    
+    console.log('➕ Добавлено в очередь и отправлено на сервер:', newEntry);
   },
 
   removeFromQueue: (braceletCode) => {
-    console.log('🗑️ Попытка удалить код браслета:', braceletCode);
+    console.log('🗑️ Удаление кода браслета:', braceletCode);
     
     const currentQueue = get().queue;
     const entryToRemove = currentQueue.find(q => q.braceletCode === braceletCode);
@@ -138,8 +116,12 @@ export const useQueueStore = create<QueueState>((set, get) => ({
     
     if (!attraction) {
       const newSummary = calculateQueueSummary(filteredQueue);
-      set({ queue: filteredQueue, queueSummary: newSummary });
-      get().saveToStorage();
+      set({ queue: filteredQueue, queueSummary: newSummary, lastUpdate: Date.now() });
+      
+      // Отправляем на сервер
+      if (window.broadcastQueueUpdate) {
+        window.broadcastQueueUpdate(filteredQueue);
+      }
       return;
     }
 
@@ -158,10 +140,14 @@ export const useQueueStore = create<QueueState>((set, get) => ({
     });
 
     const newSummary = calculateQueueSummary(updatedQueue);
-    set({ queue: updatedQueue, queueSummary: newSummary });
+    set({ queue: updatedQueue, queueSummary: newSummary, lastUpdate: Date.now() });
     
-    get().saveToStorage();
-    console.log('✅ Успешно удален код браслета:', braceletCode);
+    // Отправляем на сервер
+    if (window.broadcastQueueUpdate) {
+      window.broadcastQueueUpdate(updatedQueue);
+    }
+    
+    console.log('✅ Удален код браслета и отправлено на сервер:', braceletCode);
   },
 
   getAttractionQueue: (attractionId) => {
@@ -177,18 +163,3 @@ export const useQueueStore = create<QueueState>((set, get) => ({
 export const updateQueuesWhenSettingsChange = () => {
   useQueueStore.getState().updateQueueSummary();
 };
-
-// Инициализация при загрузке приложения
-if (typeof window !== 'undefined') {
-  useQueueStore.getState().loadFromStorage();
-  
-  // Слушаем события синхронизации от других устройств
-  window.addEventListener('queue-sync', (event: CustomEvent) => {
-    console.log('🔄 Получена синхронизация очереди от другого устройства');
-    const queueData = event.detail;
-    if (queueData && Array.isArray(queueData)) {
-      localStorage.setItem('park-queue', JSON.stringify(queueData));
-      useQueueStore.getState().loadFromStorage();
-    }
-  });
-}

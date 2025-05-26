@@ -19,7 +19,7 @@ const Index = () => {
   const { isAuthenticated, currentUser, logout } = useStaffStore();
   
   // Инициализируем синхронизацию между устройствами
-  const { broadcastUpdate, isConnected } = useBroadcastSync();
+  const { broadcastUpdate, isConnected, requestSync } = useBroadcastSync();
   
   // Подключаем синхронизацию в реальном времени
   useRealtimeSync();
@@ -27,18 +27,28 @@ const Index = () => {
   useEffect(() => {
     // Создаем глобальные функции для синхронизации
     (window as any).broadcastQueueUpdate = (data: any) => {
+      console.log('📤 Отправка обновления очереди:', data);
       broadcastUpdate('queue-update', data);
     };
     
     (window as any).broadcastSettingsUpdate = (data: any) => {
+      console.log('📤 Отправка обновления настроек:', data);
       broadcastUpdate('settings-update', data);
     };
+
+    // Обработчик запроса принудительной синхронизации
+    const handleRequestSync = () => {
+      requestSync();
+    };
+
+    window.addEventListener('request-server-sync', handleRequestSync);
 
     return () => {
       delete (window as any).broadcastQueueUpdate;
       delete (window as any).broadcastSettingsUpdate;
+      window.removeEventListener('request-server-sync', handleRequestSync);
     };
-  }, [broadcastUpdate]);
+  }, [broadcastUpdate, requestSync]);
 
   const handleStaffLogin = () => {
     setActiveView('staff-login');
@@ -156,14 +166,25 @@ const Index = () => {
             Вход для персонала
           </Button>
           
-          {/* Обновленный индикатор сети */}
-          <div className="fixed bottom-4 left-4 z-50 bg-green-600 text-white px-3 py-1 rounded-full text-sm flex items-center space-x-2">
-            <span className={isConnected ? "text-green-200" : "text-red-200"}>
-              {isConnected ? "🌐" : "📱"}
-            </span>
-            <span>
-              {isConnected ? "Сеть активна" : "Автономный режим"}
-            </span>
+          {/* Обновленный индикатор сети с дополнительной информацией */}
+          <div className="fixed bottom-4 left-4 z-50 space-y-2">
+            <div className={`px-3 py-1 rounded-full text-sm flex items-center space-x-2 ${
+              isConnected 
+                ? "bg-green-600 text-white" 
+                : "bg-red-600 text-white"
+            }`}>
+              <span>
+                {isConnected ? "🌐" : "📱"}
+              </span>
+              <span>
+                {isConnected ? "Сервер подключен" : "Сервер отключен"}
+              </span>
+            </div>
+            {!isConnected && (
+              <div className="text-xs text-gray-600 bg-white/90 px-2 py-1 rounded">
+                Проверьте, запущен ли сервер
+              </div>
+            )}
           </div>
         </>
       )}

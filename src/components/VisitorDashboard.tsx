@@ -19,6 +19,7 @@ export const VisitorDashboard = ({ selectedAttraction }: VisitorDashboardProps) 
   // Подключаем синхронизацию в реальном времени
   useRealtimeSync();
 
+  // Убираем автоматическое обновление из localStorage - теперь все через сервер
   // Автоматическое обновление каждые 2 секунды для гарантии актуальности
   useEffect(() => {
     const interval = setInterval(() => {
@@ -66,7 +67,7 @@ export const VisitorDashboard = ({ selectedAttraction }: VisitorDashboardProps) 
             }
           </p>
           <div className="text-sm text-white/70 mt-2">
-            🔄 Обновлено: {new Date(lastUpdate).toLocaleTimeString('ru-RU')}
+            🔄 Синхронизация с сервером в реальном времени
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 export const useBroadcastSync = () => {
   const wsRef = useRef<WebSocket | null>(null);
@@ -7,62 +7,74 @@ export const useBroadcastSync = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [connectionAttempts, setConnectionAttempts] = useState(0);
 
-  const connectWebSocket = () => {
+  const connectWebSocket = useCallback(() => {
     try {
-      // Определяем протокол на основе текущего протокола страницы
+      // Определяем URL для WebSocket
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const wsUrl = `${protocol}//${window.location.hostname}:3001`;
       
-      console.log('🔗 Попытка подключения к серверу синхронизации:', wsUrl);
+      console.log('🔗 Подключение к серверу синхронизации:', wsUrl);
       
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {
-        console.log('✅ Успешно подключились к серверу синхронизации');
+        console.log('✅ WebSocket подключен к серверу синхронизации');
         setIsConnected(true);
         setConnectionAttempts(0);
+        
+        // Запрашиваем текущие данные с сервера
+        wsRef.current?.send(JSON.stringify({ type: 'request-sync' }));
       };
 
       wsRef.current.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+          console.log('📥 Получено от сервера:', data.type);
           
           if (data.type === 'init') {
             // Инициализация данных с сервера
-            if (data.queue && data.queue.length > 0) {
-              localStorage.setItem('park-queue', JSON.stringify(data.queue));
-              window.dispatchEvent(new CustomEvent('queue-sync', { detail: data.queue }));
+            console.log('🔄 Инициализация данных с сервера');
+            
+            if (data.queueData) {
+              window.dispatchEvent(new CustomEvent('server-queue-sync', { 
+                detail: data.queueData 
+              }));
             }
-            if (data.settings && data.settings.length > 0) {
-              localStorage.setItem('park-settings', JSON.stringify(data.settings));
-              window.dispatchEvent(new CustomEvent('settings-sync', { detail: data.settings }));
+            
+            if (data.settingsData) {
+              window.dispatchEvent(new CustomEvent('server-settings-sync', { 
+                detail: data.settingsData 
+              }));
             }
           }
           
           if (data.type === 'queue-sync') {
-            localStorage.setItem('park-queue', JSON.stringify(data.data));
-            window.dispatchEvent(new CustomEvent('queue-sync', { detail: data.data }));
-            console.log('📥 Получены обновления очереди с сервера');
+            console.log('📥 Синхронизация очереди от сервера');
+            window.dispatchEvent(new CustomEvent('server-queue-sync', { 
+              detail: data.data 
+            }));
           }
           
           if (data.type === 'settings-sync') {
-            localStorage.setItem('park-settings', JSON.stringify(data.data));
-            window.dispatchEvent(new CustomEvent('settings-sync', { detail: data.data }));
-            console.log('📥 Получены обновления настроек с сервера');
+            console.log('📥 Синхронизация настроек от сервера');
+            window.dispatchEvent(new CustomEvent('server-settings-sync', { 
+              detail: data.data 
+            }));
           }
+          
         } catch (error) {
           console.error('❌ Ошибка при обработке сообщения от сервера:', error);
         }
       };
 
       wsRef.current.onclose = () => {
-        console.log('⚠️ Соединение с сервером потеряно');
+        console.log('⚠️ WebSocket соединение закрыто');
         setIsConnected(false);
         setConnectionAttempts(prev => prev + 1);
         
-        // Если это не первая попытка, увеличиваем интервал переподключения
-        const delay = Math.min(3000 * Math.pow(1.5, connectionAttempts), 30000);
-        console.log(`🔄 Попытка переподключения через ${delay}ms...`);
+        // Переподключение с увеличивающейся задержкой
+        const delay = Math.min(2000 * Math.pow(1.5, connectionAttempts), 30000);
+        console.log(`🔄 Переподключение через ${delay}ms (попытка ${connectionAttempts + 1})`);
         
         reconnectTimeoutRef.current = setTimeout(connectWebSocket, delay);
       };
@@ -73,32 +85,17 @@ export const useBroadcastSync = () => {
       };
 
     } catch (error) {
-      console.error('❌ Ошибка при создании WebSocket соединения:', error);
+      console.error('❌ Не удалось создать WebSocket соединение:', error);
       setIsConnected(false);
       setConnectionAttempts(prev => prev + 1);
       
-      // Fallback на localStorage синхронизацию при невозможности подключения
       const delay = Math.min(5000 * Math.pow(1.5, connectionAttempts), 60000);
-      console.log(`🔄 Повторная попытка подключения через ${delay}ms...`);
-      
       reconnectTimeoutRef.current = setTimeout(connectWebSocket, delay);
     }
-  };
+  }, [connectionAttempts]);
 
   useEffect(() => {
     connectWebSocket();
-
-    // Fallback: слушаем события storage для локальной синхронизации
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'park-queue') {
-        window.dispatchEvent(new CustomEvent('queue-sync', { detail: JSON.parse(e.newValue || '[]') }));
-      }
-      if (e.key === 'park-settings') {
-        window.dispatchEvent(new CustomEvent('settings-sync', { detail: JSON.parse(e.newValue || '[]') }));
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
 
     return () => {
       if (reconnectTimeoutRef.current) {
@@ -107,28 +104,34 @@ export const useBroadcastSync = () => {
       if (wsRef.current) {
         wsRef.current.close();
       }
-      window.removeEventListener('storage', handleStorageChange);
     };
+  }, [connectWebSocket]);
+
+  const broadcastUpdate = useCallback((type: 'queue-update' | 'settings-update', data: any) => {
+    console.log(`📤 Отправка ${type} на сервер:`, data);
+    
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      try {
+        wsRef.current.send(JSON.stringify({ type, data }));
+        console.log(`✅ ${type} успешно отправлен на сервер`);
+      } catch (error) {
+        console.error(`❌ Ошибка при отправке ${type}:`, error);
+      }
+    } else {
+      console.log(`⚠️ WebSocket не подключен, не могу отправить ${type}`);
+    }
   }, []);
 
-  const broadcastUpdate = (type: 'queue-update' | 'settings-update', data: any) => {
-    // Сначала обновляем localStorage для мгновенного локального обновления
-    const key = type === 'queue-update' ? 'park-queue' : 'park-settings';
-    localStorage.setItem(key, JSON.stringify(data));
-    
-    // Затем пытаемся отправить на сервер
+  const requestSync = useCallback(() => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ type, data }));
-      console.log(`📤 Отправлены обновления ${type} на сервер`);
-    } else {
-      console.log(`⚠️ Сервер недоступен, данные сохранены локально`);
-      // Принудительно отправляем события синхронизации для локального обновления
-      window.dispatchEvent(new CustomEvent(type === 'queue-update' ? 'queue-sync' : 'settings-sync', { detail: data }));
+      wsRef.current.send(JSON.stringify({ type: 'request-sync' }));
+      console.log('📤 Запрошена принудительная синхронизация');
     }
-  };
+  }, []);
 
   return { 
     broadcastUpdate, 
-    isConnected 
+    isConnected,
+    requestSync
   };
 };

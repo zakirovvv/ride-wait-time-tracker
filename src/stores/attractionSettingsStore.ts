@@ -8,8 +8,7 @@ interface AttractionSettingsState {
   updateDuration: (attractionId: string, duration: number) => void;
   getDuration: (attractionId: string) => number;
   resetToDefaults: () => void;
-  loadFromStorage: () => void;
-  saveToStorage: () => void;
+  setSettingsFromServer: (serverSettings: AttractionSetting[]) => void;
 }
 
 const getDefaultSettings = (): AttractionSetting[] => {
@@ -24,45 +23,28 @@ const getDefaultSettings = (): AttractionSetting[] => {
 export const useAttractionSettingsStore = create<AttractionSettingsState>((set, get) => ({
   settings: getDefaultSettings(),
 
-  loadFromStorage: () => {
-    try {
-      const stored = localStorage.getItem('park-settings');
-      if (stored) {
-        const settings = JSON.parse(stored);
-        set({ settings });
-        console.log('Loaded settings from storage');
-      }
-    } catch (error) {
-      console.error('Error loading settings from storage:', error);
-    }
-  },
-
-  saveToStorage: () => {
-    try {
-      const { settings } = get();
-      localStorage.setItem('park-settings', JSON.stringify(settings));
-      
-      // Отправляем обновления на сервер
-      if (window.broadcastSettingsUpdate) {
-        window.broadcastSettingsUpdate(settings);
-      }
-      
-      console.log('Saved settings to localStorage and sent to server');
-    } catch (error) {
-      console.error('Error saving settings to storage:', error);
+  setSettingsFromServer: (serverSettings: AttractionSetting[]) => {
+    console.log('📥 Установка настроек с сервера:', serverSettings.length, 'записей');
+    if (serverSettings && Array.isArray(serverSettings) && serverSettings.length > 0) {
+      set({ settings: serverSettings });
     }
   },
 
   updateDuration: (attractionId: string, duration: number) => {
-    set(state => ({
-      settings: state.settings.map(setting =>
-        setting.attractionId === attractionId
-          ? { ...setting, duration }
-          : setting
-      )
-    }));
+    const newSettings = get().settings.map(setting =>
+      setting.attractionId === attractionId
+        ? { ...setting, duration }
+        : setting
+    );
     
-    get().saveToStorage();
+    set({ settings: newSettings });
+    
+    // Отправляем на сервер
+    if (window.broadcastSettingsUpdate) {
+      window.broadcastSettingsUpdate(newSettings);
+    }
+    
+    console.log('⚙️ Обновлена длительность и отправлено на сервер:', attractionId, duration);
   },
 
   getDuration: (attractionId: string) => {
@@ -73,21 +55,10 @@ export const useAttractionSettingsStore = create<AttractionSettingsState>((set, 
   resetToDefaults: () => {
     const defaultSettings = getDefaultSettings();
     set({ settings: defaultSettings });
-    get().saveToStorage();
+    
+    // Отправляем на сервер
+    if (window.broadcastSettingsUpdate) {
+      window.broadcastSettingsUpdate(defaultSettings);
+    }
   }
 }));
-
-// Инициализация при загрузке приложения
-if (typeof window !== 'undefined') {
-  useAttractionSettingsStore.getState().loadFromStorage();
-  
-  // Слушаем события синхронизации от других устройств
-  window.addEventListener('settings-sync', (event: CustomEvent) => {
-    console.log('Received settings sync from another device');
-    const settingsData = event.detail;
-    if (settingsData && Array.isArray(settingsData)) {
-      localStorage.setItem('park-settings', JSON.stringify(settingsData));
-      useAttractionSettingsStore.getState().loadFromStorage();
-    }
-  });
-}
