@@ -9,11 +9,10 @@ export const useBroadcastSync = () => {
 
   const connectWebSocket = useCallback(() => {
     try {
-      // Определяем URL для WebSocket
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.hostname}:3001`;
+      // Используем ws:// для локального сервера вместо wss://
+      const wsUrl = `ws://localhost:3001`;
       
-      console.log('🔗 Подключение к серверу синхронизации:', wsUrl);
+      console.log('🔗 Попытка подключения к серверу синхронизации:', wsUrl);
       
       wsRef.current = new WebSocket(wsUrl);
 
@@ -68,13 +67,13 @@ export const useBroadcastSync = () => {
       };
 
       wsRef.current.onclose = () => {
-        console.log('⚠️ WebSocket соединение закрыто');
+        console.log('⚠️ Соединение с сервером потеряно');
         setIsConnected(false);
         setConnectionAttempts(prev => prev + 1);
         
-        // Переподключение с увеличивающейся задержкой
-        const delay = Math.min(2000 * Math.pow(1.5, connectionAttempts), 30000);
-        console.log(`🔄 Переподключение через ${delay}ms (попытка ${connectionAttempts + 1})`);
+        // Переподключение с задержкой
+        const delay = Math.min(3000, 1000 * connectionAttempts);
+        console.log(`🔄 Попытка переподключения через ${delay}ms...`);
         
         reconnectTimeoutRef.current = setTimeout(connectWebSocket, delay);
       };
@@ -89,7 +88,7 @@ export const useBroadcastSync = () => {
       setIsConnected(false);
       setConnectionAttempts(prev => prev + 1);
       
-      const delay = Math.min(5000 * Math.pow(1.5, connectionAttempts), 60000);
+      const delay = Math.min(5000, 1000 * connectionAttempts);
       reconnectTimeoutRef.current = setTimeout(connectWebSocket, delay);
     }
   }, [connectionAttempts]);

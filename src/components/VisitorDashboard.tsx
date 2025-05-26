@@ -14,21 +14,20 @@ interface VisitorDashboardProps {
 export const VisitorDashboard = ({ selectedAttraction }: VisitorDashboardProps) => {
   const queueSummary = useQueueStore(state => state.queueSummary);
   const lastUpdate = useQueueStore(state => state.lastUpdate);
+  const updateQueueSummary = useQueueStore(state => state.updateQueueSummary);
   const { getDuration } = useAttractionSettingsStore();
   
   // Подключаем синхронизацию в реальном времени
   useRealtimeSync();
 
-  // Убираем автоматическое обновление из localStorage - теперь все через сервер
   // Автоматическое обновление каждые 2 секунды для гарантии актуальности
   useEffect(() => {
     const interval = setInterval(() => {
-      useQueueStore.getState().loadFromStorage();
-      useQueueStore.getState().updateQueueSummary();
+      updateQueueSummary();
     }, 2000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [updateQueueSummary]);
 
   const getWaitTimeColor = (waitTime: number) => {
     if (waitTime <= 15) return 'bg-green-500';
