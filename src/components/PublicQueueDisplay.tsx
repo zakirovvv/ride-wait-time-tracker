@@ -64,7 +64,7 @@ export const PublicQueueDisplay = () => {
             <Table>
               <TableHeader>
                 <TableRow className="border-b-2">
-                  <TableHead className="text-center font-bold text-gray-700">Развлече</TableHead>
+                  <TableHead className="text-center font-bold text-gray-700">Развлечения</TableHead>
                   <TableHead className="text-center font-bold text-gray-700">
                     <div className="flex items-center justify-center gap-2">
                       <Users className="w-4 h-4" />
