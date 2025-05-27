@@ -9,7 +9,119 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      attraction_settings: {
+        Row: {
+          attraction_id: string
+          capacity: number
+          created_at: string | null
+          duration: number
+          id: string
+          is_active: boolean
+          updated_at: string | null
+        }
+        Insert: {
+          attraction_id: string
+          capacity?: number
+          created_at?: string | null
+          duration?: number
+          id?: string
+          is_active?: boolean
+          updated_at?: string | null
+        }
+        Update: {
+          attraction_id?: string
+          capacity?: number
+          created_at?: string | null
+          duration?: number
+          id?: string
+          is_active?: boolean
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      queue_entries: {
+        Row: {
+          attraction_id: string
+          bracelet_code: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string | null
+          customer_name: string
+          estimated_time: string
+          id: string
+          position: number
+          status: Database["public"]["Enums"]["ticket_status"]
+          updated_at: string | null
+        }
+        Insert: {
+          attraction_id: string
+          bracelet_code: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          customer_name: string
+          estimated_time: string
+          id?: string
+          position: number
+          status?: Database["public"]["Enums"]["ticket_status"]
+          updated_at?: string | null
+        }
+        Update: {
+          attraction_id?: string
+          bracelet_code?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          customer_name?: string
+          estimated_time?: string
+          id?: string
+          position?: number
+          status?: Database["public"]["Enums"]["ticket_status"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "queue_entries_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "staff_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_members: {
+        Row: {
+          attraction_id: string | null
+          created_at: string | null
+          id: string
+          name: string
+          password_hash: string
+          role: Database["public"]["Enums"]["staff_role"]
+          updated_at: string | null
+          username: string
+        }
+        Insert: {
+          attraction_id?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          password_hash: string
+          role: Database["public"]["Enums"]["staff_role"]
+          updated_at?: string | null
+          username: string
+        }
+        Update: {
+          attraction_id?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          password_hash?: string
+          role?: Database["public"]["Enums"]["staff_role"]
+          updated_at?: string | null
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +130,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      staff_role: "admin" | "cashier" | "instructor"
+      ticket_status: "active" | "completed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +246,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      staff_role: ["admin", "cashier", "instructor"],
+      ticket_status: ["active", "completed", "cancelled"],
+    },
   },
 } as const

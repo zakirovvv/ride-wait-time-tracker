@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useQueueStore } from '@/stores/queueStore';
-import { useStaffStore } from '@/stores/staffStore';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { useSupabaseQueue } from '@/hooks/useSupabaseQueue';
 import { attractions } from '@/data/attractions';
 import { toast } from '@/hooks/use-toast';
 import { Users, CheckCircle, Clock, LogOut, AlertCircle, Settings } from 'lucide-react';
@@ -16,48 +16,46 @@ export const InstructorInterface = () => {
     currentUser,
     logout,
     hasAdminPermissions
-  } = useStaffStore();
+  } = useSupabaseAuth();
   
   const {
     removeFromQueue,
     getAttractionQueue,
-    queue: globalQueue
-  } = useQueueStore();
+    isLoading
+  } = useSupabaseQueue();
 
   const isAdmin = hasAdminPermissions(currentUser);
 
   // Определяем ID аттракциона
-  const attractionId = isAdmin ? selectedAttraction : currentUser?.attractionId;
+  const attractionId = isAdmin ? selectedAttraction : currentUser?.attraction_id;
   const attraction = attractions.find(a => a.id === attractionId);
 
   // Устанавливаем аттракцион для инструктора автоматически
   useEffect(() => {
-    if (!isAdmin && currentUser?.attractionId) {
-      setSelectedAttraction(currentUser.attractionId);
+    if (!isAdmin && currentUser?.attraction_id) {
+      setSelectedAttraction(currentUser.attraction_id);
     }
   }, [currentUser, isAdmin]);
 
   // Получаем очередь для выбранного аттракциона
   const queue = attractionId ? getAttractionQueue(attractionId) : [];
 
-  // Автоматически обновляем очередь каждую секунду
-  useEffect(() => {
-    if (attractionId) {
-      const interval = setInterval(() => {
-        // Принудительно обновляем компонент для отображения актуальной очереди
-      }, 1000);
-      return () => clearInterval(interval);
+  const handleCompleteRide = async (braceletCode: string, customerName: string) => {
+    try {
+      console.log('Instructor completing ride for:', braceletCode, customerName);
+      await removeFromQueue(braceletCode, currentUser?.id);
+
+      toast({
+        title: "Катание завершено!",
+        description: `${customerName} (${braceletCode}) успешно прокатился`
+      });
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось завершить катание",
+        variant: "destructive"
+      });
     }
-  }, [attractionId, globalQueue]);
-
-  const handleCompleteRide = (braceletCode: string, customerName: string) => {
-    console.log('Instructor completing ride for:', braceletCode, customerName);
-    removeFromQueue(braceletCode);
-
-    toast({
-      title: "Катание завершено!",
-      description: `${customerName} (${braceletCode}) успешно прокатился`
-    });
   };
 
   const handleLogout = () => {
@@ -86,6 +84,14 @@ export const InstructorInterface = () => {
     );
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-500 to-blue-500 flex items-center justify-center">
+        <div className="text-white text-xl">Загрузка...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-500 to-blue-500 p-6">
       <div className="max-w-4xl mx-auto">
@@ -98,6 +104,9 @@ export const InstructorInterface = () => {
             <p className="text-lg text-white/90 drop-shadow">
               {isAdmin ? 'Управление очередями всех аттракционов' : 'Управление очередью и проведение аттракциона'}
             </p>
+            <div className="text-sm text-white/70 mt-2">
+              🔄 Синхронизация с базой данных в реальном времени
+            </div>
           </div>
           <div className="text-right">
             <div className="text-white mb-2">
@@ -111,7 +120,7 @@ export const InstructorInterface = () => {
         </div>
 
         {/* Сообщение если нет назначенного аттракциона */}
-        {!isAdmin && !currentUser?.attractionId && (
+        {!isAdmin && !currentUser?.attraction_id && (
           <Card className="mb-6 bg-yellow-50 border-yellow-200">
             <CardContent className="p-6 text-center">
               <AlertCircle className="w-12 h-12 mx-auto mb-4 text-yellow-600" />
@@ -236,13 +245,13 @@ export const InstructorInterface = () => {
                           {index + 1}
                         </div>
                         <div>
-                          <div className="font-semibold text-gray-800">{entry.customerName}</div>
+                          <div className="font-semibold text-gray-800">{entry.customer_name}</div>
                           <div className="text-sm text-gray-500">
-                            Браслет: {entry.braceletCode}
+                            Браслет: {entry.bracelet_code}
                           </div>
                           <div className="text-xs text-gray-400 flex items-center">
                             <Clock className="w-3 h-3 mr-1" />
-                            {index === 0 ? 'Сейчас катается' : `Время: ${entry.estimatedTime.toLocaleTimeString('ru-RU', {
+                            {index === 0 ? 'Сейчас катается' : `Время: ${new Date(entry.estimated_time).toLocaleTimeString('ru-RU', {
                               hour: '2-digit',
                               minute: '2-digit'
                             })}`}
@@ -250,7 +259,7 @@ export const InstructorInterface = () => {
                         </div>
                       </div>
                       <Button
-                        onClick={() => handleCompleteRide(entry.braceletCode, entry.customerName)}
+                        onClick={() => handleCompleteRide(entry.bracelet_code, entry.customer_name)}
                         className="bg-green-600 hover:bg-green-700 text-white"
                         size="lg"
                       >

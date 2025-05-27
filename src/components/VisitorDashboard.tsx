@@ -1,9 +1,8 @@
-import { useEffect } from 'react';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useQueueStore } from '@/stores/queueStore';
-import { useAttractionSettingsStore } from '@/stores/attractionSettingsStore';
-import { useRealtimeSync } from '@/hooks/useRealtimeSync';
+import { useSupabaseQueue } from '@/hooks/useSupabaseQueue';
+import { useSupabaseSettings } from '@/hooks/useSupabaseSettings';
 import { attractions } from '@/data/attractions';
 import { Clock, Users } from 'lucide-react';
 
@@ -12,22 +11,8 @@ interface VisitorDashboardProps {
 }
 
 export const VisitorDashboard = ({ selectedAttraction }: VisitorDashboardProps) => {
-  const queueSummary = useQueueStore(state => state.queueSummary);
-  const lastUpdate = useQueueStore(state => state.lastUpdate);
-  const updateQueueSummary = useQueueStore(state => state.updateQueueSummary);
-  const { getDuration } = useAttractionSettingsStore();
-  
-  // Подключаем синхронизацию в реальном времени
-  useRealtimeSync();
-
-  // Автоматическое обновление каждые 2 секунды для гарантии актуальности
-  useEffect(() => {
-    const interval = setInterval(() => {
-      updateQueueSummary();
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [updateQueueSummary]);
+  const { queueSummary, isLoading: queueLoading } = useSupabaseQueue();
+  const { getDuration } = useSupabaseSettings();
 
   const getWaitTimeColor = (waitTime: number) => {
     if (waitTime <= 15) return 'bg-green-500';
@@ -52,6 +37,14 @@ export const VisitorDashboard = ({ selectedAttraction }: VisitorDashboardProps) 
     ? `${attractions.find(a => a.id === selectedAttraction)?.name} - Очередь`
     : '🏞️ Парк Приключений';
 
+  if (queueLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-yellow-400 flex items-center justify-center">
+        <div className="text-white text-xl">Загрузка...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-yellow-400 p-6">
       <div className="max-w-7xl mx-auto">
@@ -66,7 +59,7 @@ export const VisitorDashboard = ({ selectedAttraction }: VisitorDashboardProps) 
             }
           </p>
           <div className="text-sm text-white/70 mt-2">
-            🔄 Синхронизация с сервером в реальном времени
+            🔄 Синхронизация с базой данных в реальном времени
           </div>
         </div>
 
@@ -148,7 +141,7 @@ export const VisitorDashboard = ({ selectedAttraction }: VisitorDashboardProps) 
           <Card className="bg-white/90 backdrop-blur-sm max-w-md mx-auto">
             <CardContent className="p-4">
               <p className="text-sm text-gray-600">
-                💡 <strong>Совет:</strong> Время ожидания обновляется в реальном времени
+                💡 <strong>Совет:</strong> Время ожидания обновляется в реальном времени из базы данных
               </p>
             </CardContent>
           </Card>

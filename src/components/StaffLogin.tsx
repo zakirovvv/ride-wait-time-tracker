@@ -1,9 +1,10 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useStaffStore } from '@/stores/staffStore';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { toast } from '@/hooks/use-toast';
 import { Lock, User, ArrowLeft } from 'lucide-react';
 
@@ -15,23 +16,37 @@ interface StaffLoginProps {
 export const StaffLogin = ({ onLoginSuccess, onBack }: StaffLoginProps) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const login = useStaffStore(state => state.login);
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useSupabaseAuth();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
-    if (login(username, password)) {
+    try {
+      const success = await login(username, password);
+      
+      if (success) {
+        toast({
+          title: "Вход выполнен успешно!",
+          description: "Добро пожаловать в систему"
+        });
+        onLoginSuccess();
+      } else {
+        toast({
+          title: "Ошибка входа",
+          description: "Неверный логин или пароль",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
       toast({
-        title: "Вход выполнен успешно!",
-        description: "Добро пожаловать в систему"
-      });
-      onLoginSuccess();
-    } else {
-      toast({
-        title: "Ошибка входа",
-        description: "Неверный логин или пароль",
+        title: "Ошибка",
+        description: "Произошла ошибка при входе",
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -68,6 +83,7 @@ export const StaffLogin = ({ onLoginSuccess, onBack }: StaffLoginProps) => {
                   placeholder="Введите логин"
                   className="pl-10"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -84,12 +100,17 @@ export const StaffLogin = ({ onLoginSuccess, onBack }: StaffLoginProps) => {
                   placeholder="Введите пароль"
                   className="pl-10"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
             
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
-              Войти
+            <Button 
+              type="submit" 
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Вход...' : 'Войти'}
             </Button>
           </form>
           

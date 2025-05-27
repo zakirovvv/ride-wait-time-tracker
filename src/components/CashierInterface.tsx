@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useQueueStore } from '@/stores/queueStore';
-import { useStaffStore } from '@/stores/staffStore';
-import { useAttractionSettingsStore } from '@/stores/attractionSettingsStore';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { useSupabaseQueue } from '@/hooks/useSupabaseQueue';
+import { useSupabaseSettings } from '@/hooks/useSupabaseSettings';
 import { attractions } from '@/data/attractions';
 import { toast } from '@/hooks/use-toast';
 import { Ticket, Hash, Clock, LogOut, Timer, Settings } from 'lucide-react';
@@ -17,12 +17,12 @@ export const CashierInterface = () => {
   const [braceletCode, setBraceletCode] = useState('');
   const [selectedAttraction, setSelectedAttraction] = useState('');
   const [showSettings, setShowSettings] = useState(false);
-  const addToQueue = useQueueStore(state => state.addToQueue);
-  const queueSummary = useQueueStore(state => state.queueSummary);
-  const { currentUser, logout } = useStaffStore();
-  const { getDuration } = useAttractionSettingsStore();
+  
+  const { currentUser, logout } = useSupabaseAuth();
+  const { queueSummary, addToQueue, isLoading: queueLoading } = useSupabaseQueue();
+  const { getDuration } = useSupabaseSettings();
 
-  const handleSellTicket = () => {
+  const handleSellTicket = async () => {
     if (!braceletCode.trim() || !selectedAttraction) {
       toast({
         title: "Ошибка",
@@ -32,19 +32,23 @@ export const CashierInterface = () => {
       return;
     }
 
-    addToQueue({
-      attractionId: selectedAttraction,
-      braceletCode: braceletCode.trim().toUpperCase(),
-      customerName: braceletCode.trim().toUpperCase() // Используем код как имя для совместимости
-    });
+    try {
+      await addToQueue(braceletCode.trim(), selectedAttraction);
 
-    toast({
-      title: "Билет продан!",
-      description: `Браслет с кодом ${braceletCode.trim().toUpperCase()} добавлен в очередь`,
-    });
+      toast({
+        title: "Билет продан!",
+        description: `Браслет с кодом ${braceletCode.trim().toUpperCase()} добавлен в очередь`,
+      });
 
-    setBraceletCode('');
-    setSelectedAttraction('');
+      setBraceletCode('');
+      setSelectedAttraction('');
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось добавить в очередь",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleLogout = () => {
@@ -77,6 +81,14 @@ export const CashierInterface = () => {
     );
   }
 
+  if (queueLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-green-500 to-teal-400 flex items-center justify-center">
+        <div className="text-white text-xl">Загрузка...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-green-500 to-teal-400 p-6">
       <div className="max-w-6xl mx-auto">
@@ -89,6 +101,9 @@ export const CashierInterface = () => {
             <p className="text-lg text-white/90 drop-shadow">
               Введите код браслета и выберите аттракцион
             </p>
+            <div className="text-sm text-white/70 mt-2">
+              🔄 Синхронизация с базой данных в реальном времени
+            </div>
           </div>
           <div className="text-right flex flex-col space-y-2">
             <div className="text-white mb-2">
