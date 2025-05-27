@@ -38,7 +38,7 @@ export const AttractionSelector = ({
   return <div className="min-h-screen bg-gradient-to-br from-green-600 via-blue-500 to-purple-600 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">🏞️ Grifon park</h1>
+          <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg"> Grifon park</h1>
           <p className="text-xl text-white/90 drop-shadow">Выберите развлечение для просмотра очереди</p>
         </div>
 
