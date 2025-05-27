@@ -173,7 +173,7 @@ export const PublicQueueDisplay = () => {
           <Card className="bg-white/90 backdrop-blur-sm">
             <CardContent className="p-6 text-center">
               <h3 className="text-xl font-bold text-gray-800 mb-3">💡 Совет посетителям</h3>
-              <p className="text-gray-700 text-lg">Развлечении отсортированы по времени ожидания - сверху самые свободные!</p>
+              <p className="text-gray-700 text-lg">Развлечения отсортированы по времени ожидания - сверху самые свободные!</p>
             </CardContent>
           </Card>
 
