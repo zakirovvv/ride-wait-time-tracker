@@ -39,9 +39,7 @@ export const AttractionSelector = ({
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">🏞️ Grifon park</h1>
-          <p className="text-xl text-white/90 drop-shadow">
-            Выберите аттракцион для просмотра очереди
-          </p>
+          <p className="text-xl text-white/90 drop-shadow">Выберите развлечение для просмотра очереди</p>
         </div>
 
         {/* Сетка аттракционов */}
