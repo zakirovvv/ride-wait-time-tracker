@@ -41,9 +41,7 @@ export const PublicQueueDisplay = () => {
           <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">
             🎢 Информация по аттракционам
           </h1>
-          <p className="text-xl text-white/90 drop-shadow">
-            Выберите аттракцион с минимальным временем ожидания!
-          </p>
+          <p className="text-xl text-white/90 drop-shadow">Выберите развлечение с минимальным временем ожидания!</p>
           <div className="text-lg text-white/80 mt-2">
             Обновлено: {new Date().toLocaleTimeString('ru-RU', {
             hour: '2-digit',
