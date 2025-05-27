@@ -13,13 +13,20 @@ export const useSupabaseAuth = () => {
     // Проверяем сохраненного пользователя при загрузке
     const savedUser = localStorage.getItem('currentStaffUser');
     if (savedUser) {
-      setCurrentUser(JSON.parse(savedUser));
+      try {
+        setCurrentUser(JSON.parse(savedUser));
+      } catch (error) {
+        console.error('Ошибка парсинга сохраненного пользователя:', error);
+        localStorage.removeItem('currentStaffUser');
+      }
     }
     setIsLoading(false);
   }, []);
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
+      console.log('Попытка входа для пользователя:', username);
+      
       const { data, error } = await supabase
         .from('staff_members')
         .select('*')
@@ -27,10 +34,17 @@ export const useSupabaseAuth = () => {
         .eq('password_hash', password)
         .single();
 
-      if (error || !data) {
+      if (error) {
+        console.error('Ошибка запроса к базе данных:', error);
         return false;
       }
 
+      if (!data) {
+        console.log('Пользователь не найден');
+        return false;
+      }
+
+      console.log('Пользователь найден:', data);
       setCurrentUser(data);
       localStorage.setItem('currentStaffUser', JSON.stringify(data));
       return true;
@@ -41,6 +55,7 @@ export const useSupabaseAuth = () => {
   };
 
   const logout = () => {
+    console.log('Выход из системы');
     setCurrentUser(null);
     localStorage.removeItem('currentStaffUser');
   };

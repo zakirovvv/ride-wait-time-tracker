@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { AttractionSelector } from '@/components/AttractionSelector';
 import { QueueBoard } from '@/components/QueueBoard';
@@ -8,7 +9,7 @@ import { PublicQueueDisplay } from '@/components/PublicQueueDisplay';
 import { OperatorInterface } from '@/components/OperatorInterface';
 import { InstructorInterface } from '@/components/InstructorInterface';
 import { StaffLogin } from '@/components/StaffLogin';
-import { useStaffStore } from '@/stores/staffStore';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { useBroadcastSync } from '@/hooks/useBroadcastSync';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,7 @@ import { Button } from '@/components/ui/button';
 const Index = () => {
   const [activeView, setActiveView] = useState<'home' | 'queue' | 'visitor' | 'cashier' | 'cashier-display' | 'public-display' | 'operator' | 'instructor' | 'staff-login'>('home');
   const [selectedAttraction, setSelectedAttraction] = useState<string | null>(null);
-  const { isAuthenticated, currentUser, logout } = useStaffStore();
+  const { isAuthenticated, currentUser, logout } = useSupabaseAuth();
   
   // Инициализируем синхронизацию между устройствами
   const { broadcastUpdate, isConnected, requestSync } = useBroadcastSync();
