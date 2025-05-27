@@ -1,14 +1,14 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useQueueStore } from '@/stores/queueStore';
-import { useAttractionSettingsStore } from '@/stores/attractionSettingsStore';
+import { useSupabaseQueue } from '@/hooks/useSupabaseQueue';
+import { useSupabaseSettings } from '@/hooks/useSupabaseSettings';
 import { attractions } from '@/data/attractions';
 import { Clock, Users, Timer } from 'lucide-react';
 
 export const PublicQueueDisplay = () => {
-  const queueSummary = useQueueStore(state => state.queueSummary);
-  const { getDuration } = useAttractionSettingsStore();
+  const { queueSummary, isLoading } = useSupabaseQueue();
+  const { getDuration } = useSupabaseSettings();
 
   const getStatusColor = (waitTime: number) => {
     if (waitTime === 0) return 'text-green-600 bg-green-50';
@@ -30,6 +30,14 @@ export const PublicQueueDisplay = () => {
     if (waitTime <= 30) return '⏰ Подождать стоит';
     return '❌ Долгое ожидание';
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 flex items-center justify-center">
+        <div className="text-white text-xl">Загрузка...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 p-6">

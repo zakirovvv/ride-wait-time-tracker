@@ -1,5 +1,5 @@
 
-import { useQueueStore } from '@/stores/queueStore';
+import { useSupabaseQueue } from '@/hooks/useSupabaseQueue';
 import { attractions } from '@/data/attractions';
 import { Clock } from 'lucide-react';
 
@@ -8,7 +8,7 @@ interface QueueBoardProps {
 }
 
 export const QueueBoard = ({ attractionId }: QueueBoardProps) => {
-  const getAttractionQueue = useQueueStore(state => state.getAttractionQueue);
+  const { getAttractionQueue } = useSupabaseQueue();
   
   const attraction = attractions.find(a => a.id === attractionId);
   const queue = getAttractionQueue(attractionId);
@@ -59,12 +59,12 @@ export const QueueBoard = ({ attractionId }: QueueBoardProps) => {
                 {entry.position}
               </div>
               <div className="text-3xl font-mono font-bold">
-                {entry.braceletCode}
+                {entry.bracelet_code}
               </div>
               <div className="flex items-center justify-center">
                 <Clock className="w-6 h-6 mr-2" />
                 <span className="text-2xl font-bold">
-                  {entry.estimatedTime.toLocaleTimeString('ru-RU', { 
+                  {new Date(entry.estimated_time).toLocaleTimeString('ru-RU', { 
                     hour: '2-digit', 
                     minute: '2-digit' 
                   })}

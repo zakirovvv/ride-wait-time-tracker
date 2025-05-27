@@ -1,11 +1,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useQueueStore } from '@/stores/queueStore';
+import { useSupabaseQueue } from '@/hooks/useSupabaseQueue';
+import { useSupabaseSettings } from '@/hooks/useSupabaseSettings';
 import { attractions } from '@/data/attractions';
 import { Clock, Users, Timer } from 'lucide-react';
 
 export const CashierDisplay = () => {
-  const queueSummary = useQueueStore(state => state.queueSummary);
+  const { queueSummary, isLoading } = useSupabaseQueue();
+  const { getDuration } = useSupabaseSettings();
 
   const getStatusColor = (waitTime: number) => {
     if (waitTime === 0) return 'bg-green-500';
@@ -20,6 +22,14 @@ export const CashierDisplay = () => {
     if (waitTime <= 30) return 'Средняя очередь';
     return 'Большая очередь';
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 flex items-center justify-center">
+        <div className="text-white text-xl">Загрузка...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 p-6">
@@ -45,6 +55,7 @@ export const CashierDisplay = () => {
             const attraction = attractions.find(a => a.id === summary.attractionId);
             if (!attraction || !attraction.isActive) return null;
 
+            const currentDuration = getDuration(summary.attractionId);
             const nextAvailableTime = new Date(Date.now() + (summary.estimatedWaitTime * 60000));
 
             return (
@@ -93,7 +104,7 @@ export const CashierDisplay = () => {
                       <span className="text-sm">Длительность:</span>
                     </div>
                     <span className="font-semibold text-gray-600">
-                      {attraction.duration} мин
+                      {currentDuration} мин
                     </span>
                   </div>
 
