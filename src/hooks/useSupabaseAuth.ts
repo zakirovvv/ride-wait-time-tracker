@@ -14,7 +14,9 @@ export const useSupabaseAuth = () => {
     const savedUser = localStorage.getItem('currentStaffUser');
     if (savedUser) {
       try {
-        setCurrentUser(JSON.parse(savedUser));
+        const parsedUser = JSON.parse(savedUser);
+        console.log('Восстановлен пользователь из localStorage:', parsedUser);
+        setCurrentUser(parsedUser);
       } catch (error) {
         console.error('Ошибка парсинга сохраненного пользователя:', error);
         localStorage.removeItem('currentStaffUser');
@@ -26,6 +28,7 @@ export const useSupabaseAuth = () => {
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
       console.log('Попытка входа для пользователя:', username);
+      setIsLoading(true);
       
       const { data, error } = await supabase
         .from('staff_members')
@@ -36,20 +39,29 @@ export const useSupabaseAuth = () => {
 
       if (error) {
         console.error('Ошибка запроса к базе данных:', error);
+        setIsLoading(false);
         return false;
       }
 
       if (!data) {
         console.log('Пользователь не найден');
+        setIsLoading(false);
         return false;
       }
 
       console.log('Пользователь найден:', data);
-      setCurrentUser(data);
+      
+      // Сначала сохраняем в localStorage
       localStorage.setItem('currentStaffUser', JSON.stringify(data));
+      
+      // Затем обновляем состояние
+      setCurrentUser(data);
+      setIsLoading(false);
+      
       return true;
     } catch (error) {
       console.error('Ошибка входа:', error);
+      setIsLoading(false);
       return false;
     }
   };
