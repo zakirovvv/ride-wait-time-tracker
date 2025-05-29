@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,19 +20,7 @@ export const StaffLogin = ({
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const {
-    login,
-    currentUser,
-    isAuthenticated
-  } = useSupabaseAuth();
-
-  // Если пользователь уже авторизован, автоматически перенаправляем
-  useEffect(() => {
-    if (isAuthenticated && currentUser) {
-      console.log('Пользователь уже авторизован, перенаправление...');
-      onLoginSuccess();
-    }
-  }, [isAuthenticated, currentUser, onLoginSuccess]);
+  const { login } = useSupabaseAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,10 +45,8 @@ export const StaffLogin = ({
           description: "Добро пожаловать в систему"
         });
         
-        // Небольшая задержка для обновления состояния
-        setTimeout(() => {
-          onLoginSuccess();
-        }, 100);
+        // Вызываем callback успешного входа
+        onLoginSuccess();
       } else {
         toast({
           title: "Ошибка входа",

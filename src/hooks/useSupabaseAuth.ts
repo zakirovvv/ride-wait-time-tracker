@@ -51,10 +51,10 @@ export const useSupabaseAuth = () => {
 
       console.log('Пользователь найден:', data);
       
-      // Сначала сохраняем в localStorage
+      // Сохраняем в localStorage
       localStorage.setItem('currentStaffUser', JSON.stringify(data));
       
-      // Затем обновляем состояние
+      // Обновляем состояние
       setCurrentUser(data);
       setIsLoading(false);
       

@@ -57,6 +57,18 @@ const Index = () => {
     };
   }, [broadcastUpdate, requestSync]);
 
+  // Автоматическое перенаправление авторизованного пользователя
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && currentUser && activeView === 'home') {
+      console.log('Автоматическое перенаправление пользователя:', currentUser);
+      if (currentUser.role === 'cashier' || currentUser.role === 'admin') {
+        setActiveView('cashier');
+      } else if (currentUser.role === 'instructor') {
+        setActiveView('instructor');
+      }
+    }
+  }, [isAuthenticated, currentUser, authLoading, activeView]);
+
   const handleStaffLogin = () => {
     setActiveView('staff-login');
   };
@@ -64,17 +76,7 @@ const Index = () => {
   const handleLoginSuccess = () => {
     console.log('Успешный вход, текущий пользователь:', currentUser);
     
-    // Перенаправляем пользователя в зависимости от его роли
-    if (currentUser?.role === 'cashier') {
-      setActiveView('cashier');
-    } else if (currentUser?.role === 'instructor') {
-      setActiveView('instructor');
-    } else if (currentUser?.role === 'admin') {
-      setActiveView('cashier'); // Админ может работать как кассир
-    } else {
-      // Если роль неопределена, возвращаемся на главную
-      setActiveView('home');
-    }
+    // Не меняем активное представление здесь - это будет сделано автоматически через useEffect
   };
 
   const handleHomeClick = () => {
