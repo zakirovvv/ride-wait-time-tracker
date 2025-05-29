@@ -59,24 +59,36 @@ const Index = () => {
 
   // Автоматическое перенаправление авторизованного пользователя
   useEffect(() => {
-    if (!authLoading && isAuthenticated && currentUser && activeView === 'home') {
-      console.log('Автоматическое перенаправление пользователя:', currentUser);
-      if (currentUser.role === 'cashier' || currentUser.role === 'admin') {
-        setActiveView('cashier');
-      } else if (currentUser.role === 'instructor') {
-        setActiveView('instructor');
+    console.log('🔄 Проверка автоматического перенаправления:', {
+      authLoading,
+      isAuthenticated,
+      currentUser: currentUser?.username,
+      role: currentUser?.role,
+      activeView
+    });
+
+    if (!authLoading && isAuthenticated && currentUser) {
+      if (activeView === 'staff-login' || activeView === 'home') {
+        console.log('🎯 Выполняем автоматическое перенаправление пользователя:', currentUser);
+        if (currentUser.role === 'cashier' || currentUser.role === 'admin') {
+          console.log('💰 Перенаправление к кассиру');
+          setActiveView('cashier');
+        } else if (currentUser.role === 'instructor') {
+          console.log('👨‍🏫 Перенаправление к инструктору');
+          setActiveView('instructor');
+        }
       }
     }
   }, [isAuthenticated, currentUser, authLoading, activeView]);
 
   const handleStaffLogin = () => {
+    console.log('🎯 Переход к форме входа');
     setActiveView('staff-login');
   };
 
   const handleLoginSuccess = () => {
-    console.log('Успешный вход, текущий пользователь:', currentUser);
-    
-    // Не меняем активное представление здесь - это будет сделано автоматически через useEffect
+    console.log('🎉 handleLoginSuccess вызван, текущий пользователь:', currentUser?.username);
+    // Ничего не делаем здесь - перенаправление будет автоматическим через useEffect
   };
 
   const handleHomeClick = () => {

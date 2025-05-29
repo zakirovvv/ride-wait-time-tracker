@@ -15,10 +15,10 @@ export const useSupabaseAuth = () => {
     if (savedUser) {
       try {
         const parsedUser = JSON.parse(savedUser);
-        console.log('Восстановлен пользователь из localStorage:', parsedUser);
+        console.log('🔄 Восстановлен пользователь из localStorage:', parsedUser);
         setCurrentUser(parsedUser);
       } catch (error) {
-        console.error('Ошибка парсинга сохраненного пользователя:', error);
+        console.error('❌ Ошибка парсинга сохраненного пользователя:', error);
         localStorage.removeItem('currentStaffUser');
       }
     }
@@ -27,7 +27,7 @@ export const useSupabaseAuth = () => {
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
-      console.log('Попытка входа для пользователя:', username);
+      console.log('🔐 Начало процесса входа для пользователя:', username);
       setIsLoading(true);
       
       const { data, error } = await supabase
@@ -37,37 +37,43 @@ export const useSupabaseAuth = () => {
         .eq('password_hash', password)
         .single();
 
+      console.log('📡 Ответ от базы данных:', { data, error });
+
       if (error) {
-        console.error('Ошибка запроса к базе данных:', error);
+        console.error('❌ Ошибка запроса к базе данных:', error);
         setIsLoading(false);
         return false;
       }
 
       if (!data) {
-        console.log('Пользователь не найден');
+        console.log('❌ Пользователь не найден');
         setIsLoading(false);
         return false;
       }
 
-      console.log('Пользователь найден:', data);
+      console.log('✅ Пользователь найден:', data);
       
       // Сохраняем в localStorage
       localStorage.setItem('currentStaffUser', JSON.stringify(data));
+      console.log('💾 Данные сохранены в localStorage');
       
-      // Обновляем состояние
+      // Обновляем состояние синхронно
       setCurrentUser(data);
+      console.log('🔄 Состояние currentUser обновлено:', data);
+      
       setIsLoading(false);
+      console.log('✅ Процесс входа завершен успешно');
       
       return true;
     } catch (error) {
-      console.error('Ошибка входа:', error);
+      console.error('❌ Ошибка входа:', error);
       setIsLoading(false);
       return false;
     }
   };
 
   const logout = () => {
-    console.log('Выход из системы');
+    console.log('🚪 Выход из системы');
     setCurrentUser(null);
     localStorage.removeItem('currentStaffUser');
   };
@@ -79,6 +85,13 @@ export const useSupabaseAuth = () => {
   const hasAdminPermissions = (user: StaffMember | null) => {
     return user?.role === 'admin';
   };
+
+  console.log('🏠 useSupabaseAuth состояние:', { 
+    currentUser: currentUser?.username, 
+    role: currentUser?.role,
+    isAuthenticated: !!currentUser,
+    isLoading 
+  });
 
   return {
     currentUser,

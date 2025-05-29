@@ -25,6 +25,8 @@ export const StaffLogin = ({
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('🎯 Начало обработки формы входа');
+    
     if (!username.trim() || !password.trim()) {
       toast({
         title: "Ошибка",
@@ -37,17 +39,21 @@ export const StaffLogin = ({
     setIsLoading(true);
     
     try {
+      console.log('🔄 Вызов функции login...');
       const success = await login(username.trim(), password);
+      console.log('📊 Результат login:', success);
       
       if (success) {
+        console.log('✅ Успешный вход, показываем toast...');
         toast({
           title: "Вход выполнен успешно!",
           description: "Добро пожаловать в систему"
         });
         
-        // Вызываем callback успешного входа
+        console.log('🎯 Вызов onLoginSuccess...');
         onLoginSuccess();
       } else {
+        console.log('❌ Неудачный вход');
         toast({
           title: "Ошибка входа",
           description: "Неверный логин или пароль",
@@ -55,7 +61,7 @@ export const StaffLogin = ({
         });
       }
     } catch (error) {
-      console.error('Ошибка при входе:', error);
+      console.error('❌ Ошибка при входе:', error);
       toast({
         title: "Ошибка",
         description: "Произошла ошибка при входе",
