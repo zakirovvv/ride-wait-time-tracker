@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,11 +6,13 @@ import { useSupabaseQueue } from '@/hooks/useSupabaseQueue';
 import { useSupabaseSettings } from '@/hooks/useSupabaseSettings';
 import { attractions } from '@/data/attractions';
 import { toast } from '@/hooks/use-toast';
-import { Ticket, Clock, LogOut, Timer, Settings, Plus } from 'lucide-react';
+import { Ticket, Clock, LogOut, Timer, Settings, Plus, List } from 'lucide-react';
 import { AttractionSettings } from './AttractionSettings';
+import { TicketManager } from './TicketManager';
 
 export const CashierInterface = () => {
   const [showSettings, setShowSettings] = useState(false);
+  const [showTicketManager, setShowTicketManager] = useState(false);
   const [braceletCounters, setBraceletCounters] = useState<Record<string, number>>(() => {
     // Инициализируем счетчики для каждого аттракциона
     const initialCounters: Record<string, number> = {};
@@ -58,6 +59,10 @@ export const CashierInterface = () => {
       description: "До свидания!"
     });
   };
+
+  if (showTicketManager) {
+    return <TicketManager onClose={() => setShowTicketManager(false)} />;
+  }
 
   if (showSettings) {
     return (
@@ -106,6 +111,14 @@ export const CashierInterface = () => {
             <div className="text-white mb-2">
               <span className="font-semibold">{currentUser?.name}</span>
             </div>
+            <Button
+              onClick={() => setShowTicketManager(true)}
+              variant="outline"
+              className="bg-white/20 text-white border-white/30 hover:bg-white/30"
+            >
+              <List className="w-4 h-4 mr-2" />
+              Управление билетами
+            </Button>
             <Button
               onClick={() => setShowSettings(true)}
               variant="outline"
