@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
@@ -6,25 +7,49 @@ import { useSupabaseQueue } from '@/hooks/useSupabaseQueue';
 import { useSupabaseSettings } from '@/hooks/useSupabaseSettings';
 import { attractions } from '@/data/attractions';
 import { toast } from '@/hooks/use-toast';
-import { Ticket, Clock, LogOut, Timer, Settings, Plus, List } from 'lucide-react';
+import { Ticket, Clock, LogOut, Timer, Settings, Plus, List, RotateCcw } from 'lucide-react';
 import { AttractionSettings } from './AttractionSettings';
 import { TicketManager } from './TicketManager';
 
 export const CashierInterface = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showTicketManager, setShowTicketManager] = useState(false);
-  const [braceletCounters, setBraceletCounters] = useState<Record<string, number>>(() => {
-    // Инициализируем счетчики для каждого аттракциона
+  
+  // Функция для загрузки счетчиков из localStorage
+  const loadCountersFromStorage = (): Record<string, number> => {
+    try {
+      const savedCounters = localStorage.getItem('braceletCounters');
+      if (savedCounters) {
+        const parsed = JSON.parse(savedCounters);
+        // Проверяем, что у нас есть счетчики для всех аттракционов
+        const initialCounters: Record<string, number> = {};
+        attractions.forEach(attraction => {
+          initialCounters[attraction.id] = parsed[attraction.id] || 1;
+        });
+        return initialCounters;
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки счетчиков:', error);
+    }
+    
+    // Если ничего не сохранено или ошибка, создаем начальные счетчики
     const initialCounters: Record<string, number> = {};
     attractions.forEach(attraction => {
       initialCounters[attraction.id] = 1;
     });
     return initialCounters;
-  });
+  };
+
+  const [braceletCounters, setBraceletCounters] = useState<Record<string, number>>(loadCountersFromStorage);
   
   const { currentUser, logout } = useSupabaseAuth();
   const { queueSummary, addToQueue, isLoading: queueLoading } = useSupabaseQueue();
   const { getDuration } = useSupabaseSettings();
+
+  // Сохраняем счетчики в localStorage при каждом изменении
+  useEffect(() => {
+    localStorage.setItem('braceletCounters', JSON.stringify(braceletCounters));
+  }, [braceletCounters]);
 
   const handleAddToQueue = async (attractionId: string) => {
     try {
@@ -50,6 +75,19 @@ export const CashierInterface = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const handleResetCounters = () => {
+    const resetCounters: Record<string, number> = {};
+    attractions.forEach(attraction => {
+      resetCounters[attraction.id] = 1;
+    });
+    setBraceletCounters(resetCounters);
+    
+    toast({
+      title: "Счетчики сброшены",
+      description: "Все счетчики браслетов сброшены до 1",
+    });
   };
 
   const handleLogout = () => {
@@ -126,6 +164,14 @@ export const CashierInterface = () => {
             >
               <Settings className="w-4 h-4 mr-2" />
               Настройки
+            </Button>
+            <Button
+              onClick={handleResetCounters}
+              variant="outline"
+              className="bg-white/20 text-white border-white/30 hover:bg-white/30"
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Сбросить счетчики
             </Button>
             <Button 
               onClick={handleLogout}
@@ -220,9 +266,20 @@ export const CashierInterface = () => {
         {/* Summary Card */}
         <Card className="mt-8 bg-white/95 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="flex items-center text-2xl text-gray-800">
-              <Ticket className="w-6 h-6 mr-2 text-blue-600" />
-              Общая статистика
+            <CardTitle className="flex items-center justify-between text-2xl text-gray-800">
+              <div className="flex items-center">
+                <Ticket className="w-6 h-6 mr-2 text-blue-600" />
+                Общая статистика
+              </div>
+              <Button
+                onClick={handleResetCounters}
+                variant="outline"
+                size="sm"
+                className="text-red-600 border-red-600 hover:bg-red-50"
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Сбросить все счетчики
+              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent>
