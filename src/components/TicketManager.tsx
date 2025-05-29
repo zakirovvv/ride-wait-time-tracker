@@ -1,13 +1,15 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSupabaseQueue } from '@/hooks/useSupabaseQueue';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { attractions } from '@/data/attractions';
 import { toast } from '@/hooks/use-toast';
-import { Trash2, Search, Clock, Ticket } from 'lucide-react';
+import { Trash2, Search, Clock, Ticket, ArrowUpDown } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -23,6 +25,7 @@ interface TicketManagerProps {
 
 export const TicketManager = ({ onClose }: TicketManagerProps) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const { queue, removeFromQueue, isLoading } = useSupabaseQueue();
   const { currentUser } = useSupabaseAuth();
 
@@ -111,8 +114,8 @@ export const TicketManager = ({ onClose }: TicketManagerProps) => {
           </Button>
         </div>
 
-        {/* Search and Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Search, Sort and Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="md:col-span-2 bg-white/95 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -127,6 +130,26 @@ export const TicketManager = ({ onClose }: TicketManagerProps) => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full"
               />
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/95 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <ArrowUpDown className="w-5 h-5 mr-2" />
+                Сортировка
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Select value={sortOrder} onValueChange={(value: 'newest' | 'oldest') => setSortOrder(value)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Выберите порядок" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Сначала новые</SelectItem>
+                  <SelectItem value="oldest">Сначала старые</SelectItem>
+                </SelectContent>
+              </Select>
             </CardContent>
           </Card>
 
@@ -177,7 +200,11 @@ export const TicketManager = ({ onClose }: TicketManagerProps) => {
                 </TableHeader>
                 <TableBody>
                   {filteredQueue
-                    .sort((a, b) => new Date(a.created_at || '').getTime() - new Date(b.created_at || '').getTime())
+                    .sort((a, b) => {
+                      const timeA = new Date(a.created_at || '').getTime();
+                      const timeB = new Date(b.created_at || '').getTime();
+                      return sortOrder === 'newest' ? timeB - timeA : timeA - timeB;
+                    })
                     .map((entry) => (
                     <TableRow key={entry.id}>
                       <TableCell>
