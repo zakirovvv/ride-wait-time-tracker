@@ -35,6 +35,7 @@ export const TicketManager = ({ onClose }: TicketManagerProps) => {
     try {
       console.log('🗑️ Попытка удалить билет:', braceletCode);
       console.log('📋 Текущая очередь:', queue);
+      console.log('👤 Текущий пользователь:', currentUser);
       
       // Проверяем, существует ли билет в очереди
       const existingTicket = queue.find(entry => entry.bracelet_code === braceletCode);
@@ -50,7 +51,8 @@ export const TicketManager = ({ onClose }: TicketManagerProps) => {
         return;
       }
 
-      await removeFromQueue(braceletCode, currentUser?.name);
+      // Передаем ID пользователя вместо имени
+      await removeFromQueue(braceletCode, currentUser?.id);
       
       console.log('✅ Билет успешно удален:', braceletCode);
       toast({
