@@ -12,7 +12,14 @@ import { AttractionSettings } from './AttractionSettings';
 
 export const CashierInterface = () => {
   const [showSettings, setShowSettings] = useState(false);
-  const [nextBraceletNumber, setNextBraceletNumber] = useState(1);
+  const [braceletCounters, setBraceletCounters] = useState<Record<string, number>>(() => {
+    // Инициализируем счетчики для каждого аттракциона
+    const initialCounters: Record<string, number> = {};
+    attractions.forEach(attraction => {
+      initialCounters[attraction.id] = 1;
+    });
+    return initialCounters;
+  });
   
   const { currentUser, logout } = useSupabaseAuth();
   const { queueSummary, addToQueue, isLoading: queueLoading } = useSupabaseQueue();
@@ -20,7 +27,8 @@ export const CashierInterface = () => {
 
   const handleAddToQueue = async (attractionId: string) => {
     try {
-      const braceletCode = nextBraceletNumber.toString();
+      const currentNumber = braceletCounters[attractionId];
+      const braceletCode = `${attractionId.toUpperCase()}-${currentNumber}`;
       
       await addToQueue(braceletCode, attractionId);
 
@@ -29,7 +37,11 @@ export const CashierInterface = () => {
         description: `Браслет номер ${braceletCode} добавлен в очередь`,
       });
 
-      setNextBraceletNumber(prev => prev + 1);
+      // Увеличиваем счетчик только для этого аттракциона
+      setBraceletCounters(prev => ({
+        ...prev,
+        [attractionId]: prev[attractionId] + 1
+      }));
     } catch (error) {
       toast({
         title: "Ошибка",
@@ -89,9 +101,6 @@ export const CashierInterface = () => {
             <p className="text-lg text-white/90 drop-shadow">
               Выберите аттракцион и добавьте посетителя в очередь
             </p>
-            <div className="text-sm text-white/70 mt-2">
-              Следующий номер браслета: <span className="font-bold text-yellow-300">{nextBraceletNumber}</span>
-            </div>
           </div>
           <div className="text-right flex flex-col space-y-2">
             <div className="text-white mb-2">
@@ -122,6 +131,7 @@ export const CashierInterface = () => {
             const summary = queueSummary.find(s => s.attractionId === attraction.id);
             const currentDuration = getDuration(attraction.id);
             const estimatedWaitTime = summary?.estimatedWaitTime || 0;
+            const nextBraceletNumber = braceletCounters[attraction.id];
 
             return (
               <Card key={attraction.id} className="bg-white/95 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
@@ -157,12 +167,21 @@ export const CashierInterface = () => {
                       </span>
                     </div>
                     
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center mb-2">
                       <div className="text-sm text-gray-600">
                         Длительность:
                       </div>
                       <span className="font-semibold text-gray-700">
                         {currentDuration} мин
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <div className="text-sm text-gray-600">
+                        Следующий номер:
+                      </div>
+                      <span className="font-bold text-purple-600">
+                        {attraction.id.toUpperCase()}-{nextBraceletNumber}
                       </span>
                     </div>
                   </div>
@@ -176,7 +195,7 @@ export const CashierInterface = () => {
                     <Plus className="w-5 h-5 mr-2" />
                     Добавить в очередь
                     <span className="ml-2 bg-white/20 px-2 py-1 rounded text-sm">
-                      #{nextBraceletNumber}
+                      {attraction.id.toUpperCase()}-{nextBraceletNumber}
                     </span>
                   </Button>
                 </CardContent>
@@ -203,7 +222,7 @@ export const CashierInterface = () => {
               </div>
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <div className="text-2xl font-bold text-green-600">
-                  {nextBraceletNumber - 1}
+                  {Object.values(braceletCounters).reduce((sum, count) => sum + (count - 1), 0)}
                 </div>
                 <div className="text-sm text-gray-600">Билетов продано</div>
               </div>
@@ -215,9 +234,27 @@ export const CashierInterface = () => {
               </div>
               <div className="text-center p-4 bg-purple-50 rounded-lg">
                 <div className="text-2xl font-bold text-purple-600">
-                  {nextBraceletNumber}
+                  {Object.keys(braceletCounters).length}
                 </div>
-                <div className="text-sm text-gray-600">Следующий номер</div>
+                <div className="text-sm text-gray-600">Аттракционов</div>
+              </div>
+            </div>
+            
+            {/* Detailed counters per attraction */}
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">Счетчики по аттракционам:</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {attractions.filter(a => a.isActive).map((attraction) => (
+                  <div key={attraction.id} className="bg-gray-50 rounded-lg p-3 text-center">
+                    <div className="text-sm text-gray-600 mb-1">{attraction.name}</div>
+                    <div className="font-bold text-lg text-purple-600">
+                      {attraction.id.toUpperCase()}-{braceletCounters[attraction.id]}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Продано: {braceletCounters[attraction.id] - 1}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </CardContent>
