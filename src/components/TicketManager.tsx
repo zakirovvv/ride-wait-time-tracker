@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,15 +33,35 @@ export const TicketManager = ({ onClose }: TicketManagerProps) => {
 
   const handleRemoveTicket = async (braceletCode: string) => {
     try {
+      console.log('🗑️ Попытка удалить билет:', braceletCode);
+      console.log('📋 Текущая очередь:', queue);
+      
+      // Проверяем, существует ли билет в очереди
+      const existingTicket = queue.find(entry => entry.bracelet_code === braceletCode);
+      console.log('🎫 Найденный билет:', existingTicket);
+      
+      if (!existingTicket) {
+        console.error('❌ Билет не найден в локальной очереди:', braceletCode);
+        toast({
+          title: "Ошибка",
+          description: `Билет с кодом ${braceletCode} не найден в очереди`,
+          variant: "destructive"
+        });
+        return;
+      }
+
       await removeFromQueue(braceletCode, currentUser?.name);
+      
+      console.log('✅ Билет успешно удален:', braceletCode);
       toast({
         title: "Билет удален",
         description: `Браслет ${braceletCode} успешно удален из очереди`,
       });
     } catch (error) {
+      console.error('❌ Ошибка при удалении билета:', error);
       toast({
         title: "Ошибка",
-        description: "Не удалось удалить билет",
+        description: `Не удалось удалить билет: ${error.message || 'Неизвестная ошибка'}`,
         variant: "destructive"
       });
     }

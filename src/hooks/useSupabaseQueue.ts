@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
@@ -150,8 +149,29 @@ export const useSupabaseQueue = () => {
 
   const removeFromQueue = async (braceletCode: string, completedBy?: string) => {
     try {
+      console.log('🔍 Поиск билета для удаления:', braceletCode);
+      
+      // Сначала проверяем, существует ли билет
+      const { data: existingTickets, error: findError } = await supabase
+        .from('queue_entries')
+        .select('*')
+        .eq('bracelet_code', braceletCode)
+        .eq('status', 'active');
+
+      if (findError) {
+        console.error('❌ Ошибка поиска билета:', findError);
+        throw new Error(`Ошибка поиска билета: ${findError.message}`);
+      }
+
+      if (!existingTickets || existingTickets.length === 0) {
+        console.error('❌ Билет не найден в базе данных:', braceletCode);
+        throw new Error(`Билет с кодом ${braceletCode} не найден`);
+      }
+
+      console.log('✅ Билет найден в базе:', existingTickets[0]);
+
       // Помечаем билет как завершенный
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from('queue_entries')
         .update({
           status: 'completed',
@@ -161,14 +181,14 @@ export const useSupabaseQueue = () => {
         .eq('bracelet_code', braceletCode)
         .eq('status', 'active');
 
-      if (error) {
-        console.error('Ошибка завершения билета:', error);
-        throw error;
+      if (updateError) {
+        console.error('❌ Ошибка завершения билета:', updateError);
+        throw new Error(`Ошибка удаления билета: ${updateError.message}`);
       }
 
       console.log('✅ Билет завершен:', braceletCode);
     } catch (error) {
-      console.error('Ошибка:', error);
+      console.error('❌ Ошибка в removeFromQueue:', error);
       throw error;
     }
   };
