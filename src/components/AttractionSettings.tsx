@@ -3,14 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useSupabaseSettings } from '@/hooks/useSupabaseSettings';
+import { useLocalSettings } from '@/hooks/useLocalSettings';
 import { attractions } from '@/data/attractions';
 import { toast } from '@/hooks/use-toast';
 import { Timer, RotateCcw, Save } from 'lucide-react';
 import { useState } from 'react';
 
 export const AttractionSettings = () => {
-  const { settings, updateDuration, isLoading } = useSupabaseSettings();
+  const { settings, updateDuration, isLoading } = useLocalSettings();
   const [localSettings, setLocalSettings] = useState<Record<string, number>>({});
   const [isSaving, setIsSaving] = useState<Record<string, boolean>>({});
 
