@@ -14,7 +14,123 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      attraction_settings: {
+        Row: {
+          attraction_id: string
+          capacity: number
+          duration: number
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          attraction_id: string
+          capacity?: number
+          duration?: number
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          attraction_id?: string
+          capacity?: number
+          duration?: number
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      bracelet_counters: {
+        Row: {
+          attraction_id: string
+          counter: number
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          attraction_id: string
+          counter?: number
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          attraction_id?: string
+          counter?: number
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      queue_entries: {
+        Row: {
+          attraction_id: string
+          bracelet_code: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string | null
+          customer_name: string
+          estimated_time: string
+          id: string
+          position: number
+          status: string
+        }
+        Insert: {
+          attraction_id: string
+          bracelet_code: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          customer_name: string
+          estimated_time: string
+          id?: string
+          position: number
+          status?: string
+        }
+        Update: {
+          attraction_id?: string
+          bracelet_code?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          customer_name?: string
+          estimated_time?: string
+          id?: string
+          position?: number
+          status?: string
+        }
+        Relationships: []
+      }
+      staff_members: {
+        Row: {
+          attraction_id: string | null
+          created_at: string | null
+          id: string
+          name: string
+          password_hash: string
+          role: string
+          username: string
+        }
+        Insert: {
+          attraction_id?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          password_hash: string
+          role: string
+          username: string
+        }
+        Update: {
+          attraction_id?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          password_hash?: string
+          role?: string
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
