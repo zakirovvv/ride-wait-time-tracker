@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,13 +9,15 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
 function App() {
+  const [activeView, setActiveView] = useState<'visitor' | 'cashier' | 'operator'>('visitor');
+
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-gradient-to-br from-blue-600 via-green-500 to-teal-400">
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Navigation />
+          <Navigation activeView={activeView} onViewChange={setActiveView} />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="*" element={<NotFound />} />
