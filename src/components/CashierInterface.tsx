@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
-import { useLocalQueue } from '@/hooks/useLocalQueue';
-import { useLocalSettings } from '@/hooks/useLocalSettings';
+import { useSupabaseQueue } from '@/hooks/useSupabaseQueue';
+import { useSupabaseSettings } from '@/hooks/useSupabaseSettings';
 import { attractions } from '@/data/attractions';
 import { toast } from '@/hooks/use-toast';
 import { Ticket, Clock, LogOut, Timer, Settings, Plus, List, RotateCcw } from 'lucide-react';
@@ -42,8 +42,8 @@ export const CashierInterface = () => {
   const [braceletCounters, setBraceletCounters] = useState<Record<string, number>>(loadCountersFromStorage);
   
   const { currentUser, logout } = useLocalAuth();
-  const { queueSummary, addToQueue, isLoading: queueLoading } = useLocalQueue();
-  const { getDuration } = useLocalSettings();
+  const { queueSummary, addToQueue, isLoading: queueLoading } = useSupabaseQueue();
+  const { getDuration } = useSupabaseSettings();
 
   // Сохраняем счетчики в localStorage при каждом изменении
   useEffect(() => {
